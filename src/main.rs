@@ -1,51 +1,82 @@
 use plotters::prelude::*;
+use log::{Level, info, warn, error, debug};
+use simple_logger;
 
 const HT: f64 = 0.01; // Time step
-// const ALPHA1: f64 = 0.5; // Example value, adjust as necessary
-// const ALPHA2: f64 = 0.5; // Example value, adjust as necessary
-// const TAU: f64 = 0.1; // Delay
+const ALPHART: f64 = 0.5; // Example value, adjust as necessary
 
-fn dq_dt(q_prime_t: f64) -> f64 {
-    q_prime_t
+fn h_dydt(y: (f64, f64), p: f64, ht: f64) -> (f64, f64) {
+  (ht *y.1, 
+  ht *2.0 * p * (1.0 - y.1.powi(2)).powf(3.0/2.0) * (1.0 - y.1) / (1.0 + y.1))
 }
 
-fn dq_prime_dt(p: f64, q_prime_t: f64) -> f64 {
-    2.0 * p * (1.0 - q_prime_t.powi(2)).powi(3/2) * (1.0 - q_prime_t) / (1.0 + q_prime_t)
-}
-
-// fn interpolate(delayed_q: f64, q_prev: f64, q_next: f64, t_prev: f64, t_next: f64, t: f64) -> f64 {
-//     q_prev + (q_next - q_prev) * (t - t_prev) / (t_next - t_prev)
+// fn dq_dt(q_prime_t: f64) -> f64 {
+//     q_prime_t
 // }
 
-fn rk4<F>(y: f64, dydt: F, h: f64) -> f64
+// fn dq_prime_dt(p: f64, q_prime_t: f64) -> f64 {
+//     2.0 * p * (1.0 - q_prime_t.powi(2)).powf(3.0/2.0) * (1.0 - q_prime_t) / (1.0 + q_prime_t)
+// }
+
+fn rk4<F>(y: (f64, f64), dydt: F, h: f64) -> (f64, f64)
 where
-    F: Fn(f64) -> f64,
+    F: Fn((f64, f64)) -> (f64, f64),
 {
-    let k1 = h * dydt(y);
-    let k2 = h * dydt(y + 0.5 * k1);
-    let k3 = h * dydt(y + 0.5 * k2);
-    let k4 = h * dydt(y + k3);
-    y + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0
+    let k1 = dydt(y);
+    let k2 = dydt((y.0 + 0.5 * k1.0, 
+                              y.1 + 0.5 * k1.1));
+    let k3 = dydt((y.0 + 0.5 * k2.0,
+                              y.1 + 0.5 * k2.1));
+    let k4 = dydt((y.0 + k3.0, y.1 + k3.1));
+    (y.0 + (k1.0 + 2.0 * k2.0 + 2.0 * k3.0 + k4.0) / 6.0, y.1 + (k1.1 + 2.0 * k2.1 + 2.0 * k3.1 + k4.1) / 6.0)
 }
 
-// fn find_interpolation_points(history: &Vec<(f64, f64)>, t: f64) -> (f64, f64, f64, f64) {
-//     let mut q_prev = 0.0;
-//     let mut t_prev = 0.0;
-//     let mut q_next = 0.0;
-//     let mut t_next = 0.0;
-    
-//     for &(HT, hq) in history.iter() {
-//         if HT <= t {
-//             t_prev = HT;
-//             q_prev = hq;
-//         } else {
-//             t_next = HT;
-//             q_next = hq;
-//             break;
-//         }
-//     }
-//     (q_prev, t_prev, q_next, t_next)
-// }
+fn t_segment(history: &Vec<(f64, f64, f64)>, t: f64) -> (usize, usize) {
+  let mut cnt: usize = 0;
+  let l: usize = history.len();
+  while cnt < l-1 {
+    if t >= history[cnt].0 && t<history[cnt+1].0 {
+      return (cnt, cnt+1);
+    }
+    cnt += 1;
+  }
+  (0, 0)
+}
+
+// p_q = 1 : select q
+// p_q = 2 : select p
+
+fn interpolate(history: &Vec<(f64, f64, f64)>, t: f64, p_q: usize) -> f64 {
+  let seg: (usize, usize) = t_segment(history, t);
+  let t_prev = history[seg.0].0;
+  let t_next = history[seg.1].0;
+
+  let prev = match p_q {
+      1 => history[seg.0].1,
+      2 => history[seg.0].2,
+      _ => panic!("invalid p_q")
+  };
+  let next = match p_q {
+      1 => history[seg.1].1,
+      2 => history[seg.1].2,
+      _ => panic!("invalid p_q")
+  };
+  prev + (next - prev) * (t - t_prev) / (t_next - t_prev)
+}
+
+fn get_delta(history: &Vec<(f64, f64, f64)>, t: f64) -> f64 {
+  let q = history.last().unwrap().1;
+  let q_past = interpolate(history, t - 2.0*q, 1);
+  println!("delta_eval_point {:3.2e}", t-2.0*q);
+  warn!("{:3.2e}", 3.0*q - q_past);
+  4.0 * q.powi(2) / (3.0*q - q_past)
+}
+
+fn get_p_past(history: &Vec<(f64, f64, f64)>, t: f64) -> f64 {
+  let delta = get_delta(history, t);
+  println!("t = {:3.2e}, delta = {:3.2e}", t, delta);
+  interpolate(history, t-delta, 2)
+}
 
 fn plot_results(results: &[(f64, f64, f64)]) -> Result<(), Box<dyn std::error::Error>> {
     let root = BitMapBackend::new("media/q_prime.png", (600, 400)).into_drawing_area();
@@ -80,37 +111,37 @@ fn plot_results(results: &[(f64, f64, f64)]) -> Result<(), Box<dyn std::error::E
         .legend(|(x, y)| PathElement::new([(x, y), (x + 20, y)], &BLUE));
 
     chart.configure_series_labels().draw()?;
-
     Ok(())
 }
 
 
-
 fn main() {
+    simple_logger::init_with_level(Level::Debug).unwrap();
     let mut q = 0.0;
     let mut q_prime = 0.0;
     let mut p = 1.0; 
     let mut t = 0.0; 
-    // let mut history: Vec<(f64, f64)> = Vec::new();
+    let mut history: Vec<(f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64)> = Vec::new();
 
     while t < 2.5 {
-        // Compute
-        // let delayed_t = t - TAU;
-        // if delayed_t >= 0.0 {
-        //     let (q_prev, t_prev, q_next, t_next) = find_interpolation_points(&history, delayed_t);
-        //     let delayed_q = interpolate(delayed_t, q_prev, q_next, t_prev, t_next, t);
-        //     p = ALPHA1 * ALPHA2 * p + delayed_q; // Example update, adjust as necessary
-        // }
+        if t != 0.0 {
+          let p_past = get_p_past(&history, t);
+          if !p_past.is_nan() {
+            p = 1.0 + ALPHART * p_past;
+          } else {
+            println!("p_past is NaN");
+            p = 1.0;
+          }
+        }
 
         // Compute the next values in a RK4 step
-        q_prime = rk4(q_prime, |q| dq_prime_dt(p, q), HT);
-        q = rk4(q, |q| dq_dt(q_prime), HT);
+        (q, q_prime) = rk4((q, q_prime), |y| h_dydt(y, p, HT), HT);
 
         // Save to history
-        // history.push_back((t, q));
-        println!("t = {:3.2e}, Q = {:3.2e}", t, q_prime);
-        results.push((t, q_prime, q_prime));
+        history.push((t, q, p));
+        println!("t = {:3.2e}| q = {:3.2e}| p = {:3.2e}|  Q = {:3.2e}", t, q, p, q_prime);
+        results.push((t, q, q_prime));
 
         t += HT;
     }
