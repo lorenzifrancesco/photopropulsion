@@ -1,4 +1,4 @@
-use log::{info, warn, error, debug};
+use log::{warn, debug};
 
 pub fn h_dydt(y: (f64, f64), p: f64, ht: f64) -> (f64, f64) {
   (ht *y.1, 

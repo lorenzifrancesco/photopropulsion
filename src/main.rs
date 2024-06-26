@@ -1,6 +1,6 @@
-use std::{path::Path, process::Output};
+use std::path::Path;
 
-use log::{Level, info, warn, error, debug};
+use log::Level;
 use simple_logger;
 
 pub mod io;

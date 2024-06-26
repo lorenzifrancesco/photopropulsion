@@ -1,7 +1,7 @@
 
 use csv::Writer;
 use plotters::prelude::*;
-use std::{path::Path};
+use std::path::Path;
 
 pub fn plot_results(results: &[(f64, f64, f64)]) -> Result<(), Box<dyn std::error::Error>> {
   let root = BitMapBackend::new("media/q_prime.png", (600, 400)).into_drawing_area();
