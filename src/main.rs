@@ -1,6 +1,9 @@
+use std::{path::Path, process::Output};
+
 use plotters::prelude::*;
 use log::{Level, info, warn, error, debug};
 use simple_logger;
+use csv::Writer;
 
 const HT: f64 = 0.01; // Time step
 const ALPHART: f64 = 0.5; // Example value, adjust as necessary
@@ -66,9 +69,10 @@ fn interpolate(history: &Vec<(f64, f64, f64)>, t: f64, p_q: usize) -> f64 {
 
 fn get_delta(history: &Vec<(f64, f64, f64)>, t: f64) -> f64 {
   let q = history.last().unwrap().1;
-  let q_past = interpolate(history, t - 2.0*q, 1);
-  println!("delta_eval_point {:3.2e}", t-2.0*q);
-  warn!("{:3.2e}", 3.0*q - q_past);
+  warn!("wrong value of speed");
+  let q_past = interpolate(history, t - q, 1);
+  println!("delta_eval_point {:3.2e}", t-q);
+  debug!("{:3.2e}", 3.0*q - q_past);
   4.0 * q.powi(2) / (3.0*q - q_past)
 }
 
@@ -146,4 +150,27 @@ fn main() {
         t += HT;
     }
     plot_results(&results).expect("Failed to plot results");
+    let output = Path::new("results/results.csv");
+    save_results_to_csv(output, &results)
+}
+
+fn save_results_to_csv(output: &Path, y: &Vec<(f64, f64, f64)>) {
+  // Create a CSV writer
+  let mut writer = Writer::from_path(output).expect("Failed to create a CSV Writer");
+
+  // Write the header
+  let header = vec!["Time".to_string(), "q".to_string(), "Q".to_string()];
+  writer.write_record(&header).expect("Failed writing header");
+  let steps = y.len();
+  // Write the rows
+  let mut row = vec![3.to_string(); 3]; 
+  for i in 0..steps {
+      row[0] = y[i].0.to_string();
+      row[1] = y[i].1.to_string();
+      row[2] = y[i].2.to_string();
+      writer.write_record(&row).expect("Failed to write row");
+  }
+
+  // Flush the writer
+  writer.flush().expect("Failed to write the buffer");
 }
