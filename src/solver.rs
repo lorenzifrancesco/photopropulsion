@@ -45,7 +45,7 @@ pub fn get_delta(history: &Vec<(f64, f64, f64, f64)>, _t: f64) -> f64 {
   // println!("delta_eval_point {:3.2e}", t-2.0*q);
   // debug!("{:3.2e}", 3.0*q - q_past);
   // 4.0 * q.powi(2) / (3.0*q - q_past)
-  2.0 * q / (1.0 - q_prime)
+  2.0 * q / (1.0 + q_prime)
 }
 
 fn t_segment(history: &Vec<(f64, f64, f64, f64)>, t: f64) -> (usize, usize) {

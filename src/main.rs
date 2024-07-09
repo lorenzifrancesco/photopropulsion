@@ -1,8 +1,11 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use log::Level;
 use simple_logger;
 use log::{warn, debug};
+use toml;
+use serde::Deserialize;
+use std::fs;
 
 pub mod io;
 use crate::io::*;
@@ -11,25 +14,49 @@ pub mod solver;
 use crate::solver::*; 
 
 const HT: f64 = 0.0001; // Time step
-const ALPHART: f64 = 0.5; // Example value, adjust as necessary
+const ALPHART: f64 = 0.9; // Example value, adjust as necessary
+
+
+#[derive(Debug, Deserialize)]
+struct Config {
+    q: f64,
+    q_prime: f64,
+    p: f64,
+    delta: f64,
+    t: f64,
+    mode: String,
+    output: String,
+}
+
+fn load_config() -> Config {
+  let config_content = fs::read_to_string("input/config.toml").expect("Failed to read config file");
+  toml::from_str(&config_content).expect("Failed to parse config file")
+}
 
 fn main() {
     simple_logger::init_with_level(Level::Debug).unwrap();
-    let mut q = 0.3;
-    let mut q_prime = 0.0;
-    let mut p = 1.0;
-    let mut delta = 0.0;
-    let mut t = 0.0;
+    
+    let config = load_config();
+
+    let mut q = config.q;
+    let mut q_prime = config.q_prime;
+    let mut p = config.p;
+    let mut delta = config.delta;
+    let mut t = config.t;
+
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
-    let mode = "delay";
-    if mode == "lubin" {
+
+    let mode = &config.mode;
+    let mut output = PathBuf::from(&config.output);
+
+    if mode == "lubin.csv" {
       p /= 1.0 - ALPHART;
     }
 
     results.push((t, q, q_prime, p));
     while t < 2.5 {
-        if mode == "delay" {
+        if mode == "delay.csv" {
           if !(t==0.0) {
             let p_past = get_p_past(&history, t);
             delta = get_delta(&history, t);
@@ -50,10 +77,10 @@ fn main() {
         
         // Save to history
         history.push((t, q, q_prime, p));
-        println!("t={:3.2e}|del={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}", t, delta, q, p, q_prime);
+        println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}", t, t-delta, q, p, q_prime);
         results.push((t, q, q_prime, p));
     }
     plot_results(&results).expect("Failed to plot results");
-    let output = Path::new("results/results.csv");
-    save_results_to_csv(output, &results)
+    output.push(&mode);
+    save_results_to_csv(output.as_path(), &results)
 }
