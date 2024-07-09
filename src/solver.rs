@@ -26,9 +26,9 @@ where
     (y.0 + (k1.0 + 2.0 * k2.0 + 2.0 * k3.0 + k4.0) / 6.0, y.1 + (k1.1 + 2.0 * k2.1 + 2.0 * k3.1 + k4.1) / 6.0)
 }
 
-pub fn get_p_past(history: &Vec<(f64, f64, f64)>, t: f64) -> f64 {
+pub fn get_p_past(history: &Vec<(f64, f64, f64, f64)>, t: f64) -> f64 {
   let delta = get_delta(history, t);
-  println!("t = {:3.2e}, delta = {:3.2e}", t, delta);
+  // println!("t = {:3.2e}, delta = {:3.2e}", t, delta);
   if t-delta < 0.0 {
     0.0
   } else {
@@ -36,16 +36,19 @@ pub fn get_p_past(history: &Vec<(f64, f64, f64)>, t: f64) -> f64 {
   }
 }
 
-pub fn get_delta(history: &Vec<(f64, f64, f64)>, t: f64) -> f64 {
+pub fn get_delta(history: &Vec<(f64, f64, f64, f64)>, _t: f64) -> f64 {
   let q = history.last().unwrap().1;
-  warn!("wrong value of speed");
-  let q_past = interpolate(history, t - 2.0*q, 1);
-  println!("delta_eval_point {:3.2e}", t-2.0*q);
-  debug!("{:3.2e}", 3.0*q - q_past);
-  4.0 * q.powi(2) / (3.0*q - q_past)
+  let q_prime = history.last().unwrap().2;
+  // old approach using the first iteration of the numerical approximation of (deltina)
+  // warn!("wrong value of speed");
+  // let q_past = interpolate(history, t - 2.0*q, 1);
+  // println!("delta_eval_point {:3.2e}", t-2.0*q);
+  // debug!("{:3.2e}", 3.0*q - q_past);
+  // 4.0 * q.powi(2) / (3.0*q - q_past)
+  2.0 * q / (1.0 - q_prime)
 }
 
-fn t_segment(history: &Vec<(f64, f64, f64)>, t: f64) -> (usize, usize) {
+fn t_segment(history: &Vec<(f64, f64, f64, f64)>, t: f64) -> (usize, usize) {
   let mut cnt: usize = 0;
   let l: usize = history.len();
   while cnt < l-1 {
@@ -59,19 +62,19 @@ fn t_segment(history: &Vec<(f64, f64, f64)>, t: f64) -> (usize, usize) {
 
 // p_q = 1 : select q
 // p_q = 2 : select p
-fn interpolate(history: &Vec<(f64, f64, f64)>, t: f64, p_q: usize) -> f64 {
+fn interpolate(history: &Vec<(f64, f64, f64, f64)>, t: f64, p_q: usize) -> f64 {
   let seg: (usize, usize) = t_segment(history, t);
   let t_prev = history[seg.0].0;
   let t_next = history[seg.1].0;
 
   let prev = match p_q {
       1 => history[seg.0].1,
-      2 => history[seg.0].2,
+      2 => history[seg.0].3,
       _ => panic!("invalid p_q")
   };
   let next = match p_q {
       1 => history[seg.1].1,
-      2 => history[seg.1].2,
+      2 => history[seg.1].3,
       _ => panic!("invalid p_q")
   };
   prev + (next - prev) * (t - t_prev) / (t_next - t_prev)

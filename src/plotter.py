@@ -10,7 +10,7 @@ q = df['q']
 Q = df['Q']
 P = df['P']
 file_type = '.pdf'
-grid = False
+grid = True
 lw = 0.5
 
 # Plotting q
