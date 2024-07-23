@@ -14,7 +14,6 @@ pub mod solver;
 use crate::solver::*; 
 
 const HT: f64 = 0.0001; // Time step
-const ALPHART: f64 = 0.9; // Example value, adjust as necessary
 
 
 #[derive(Debug, Deserialize)]
@@ -26,6 +25,8 @@ struct Config {
     t: f64,
     mode: String,
     output: String,
+    tf: f64,
+    alphart: f64
 }
 
 fn load_config() -> Config {
@@ -40,10 +41,11 @@ fn main() {
 
     let mut q = config.q;
     let mut q_prime = config.q_prime;
-    let mut p = config.p;
+    let mut p: f64 = config.p;
     let mut delta = config.delta;
     let mut t = config.t;
-
+    let tf = config.tf;
+    let alphart = config.alphart;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
 
@@ -51,17 +53,17 @@ fn main() {
     let mut output = PathBuf::from(&config.output);
 
     if mode == "lubin.csv" {
-      p /= 1.0 - ALPHART;
+      p /= 1.0 - alphart;
     }
 
     results.push((t, q, q_prime, p));
-    while t < 2.5 {
+    while t < tf {
         if mode == "delay.csv" {
           if !(t==0.0) {
             let p_past = get_p_past(&history, t);
             delta = get_delta(&history, t);
             if !p_past.is_nan() {
-              p = 1.0 + ALPHART * p_past;
+              p = 1.0 + alphart * p_past;
             } else {
               println!("p_past is NaN");
               p = 1.0;
