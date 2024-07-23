@@ -19,7 +19,7 @@ ls_list = ["--", ":", "-"]
 color_list = ["r", "g", "b"]
 # names_list = [r"", r"", r""]
 
-plt.figure(figsize=(4, 3))
+plt.figure(figsize=(3, 2.6))
 for i in range(3):
   # Plotting q
   plt.plot(time, q[i], linestyle=ls_list[i], color=color_list[i], label=r'$q \ / c t_{\mathrm{rel}}$', linewidth=lw)
@@ -30,7 +30,7 @@ for i in range(3):
   plt.tight_layout()
 plt.savefig('media/q_compare'+file_type)  # Save plot as PDF for LaTeX
 
-plt.figure(figsize=(4, 3))
+plt.figure(figsize=(3, 2.6))
 for i in range(3):
   # Plotting Q
   plt.plot(time, Q[i], linestyle=ls_list[i], color=color_list[i], label=r'$Q$', linewidth=lw)
@@ -41,7 +41,7 @@ for i in range(3):
   plt.tight_layout()
 plt.savefig('media/qdot_compare'+file_type)  # Save plot as PDF for LaTeX
 
-plt.figure(figsize=(4, 3))
+plt.figure(figsize=(3, 2.6))
 for i in range(3):
   # Plotting P
   plt.plot(time, P[i], linestyle=ls_list[i], color=color_list[i], label=r'$P$', linewidth=lw)
