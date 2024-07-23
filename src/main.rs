@@ -82,7 +82,8 @@ fn main() {
         println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}", t, t-delta, q, p, q_prime);
         results.push((t, q, q_prime, p));
     }
-    plot_results(&results).expect("Failed to plot results");
+    // plot_results(&results).expect("Failed to plot results");
     output.push(&mode);
-    save_results_to_csv(output.as_path(), &results)
+    save_results_to_csv(output.as_path(), &results);
+    println!("{}", q_prime);
 }
