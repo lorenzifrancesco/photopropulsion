@@ -42,12 +42,14 @@ fn main() {
 
     let mut q = config.q;
     let mut q_prime = config.q_prime;
-    let mut p: f64 = config.p;
+    let mut p= config.p;
     let mut delta = config.delta;
     let mut t = config.t;
     let tf = config.tf;
     let alphart = config.alphart;
-    let l_diffraction: f64 = config.l_diffraction;
+    let l_diffraction = config.l_diffraction;
+    let threshold = 1e-8; // empirically determined
+  let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
 
@@ -59,7 +61,7 @@ fn main() {
     }
 
     results.push((t, q, q_prime, p));
-    while t < tf {
+    while (t < tf) && (q_prime - status > threshold){
         if mode == "delay.csv" {
           if !(t==0.0) {
             let p_past = get_p_past(&history, t);
@@ -75,6 +77,8 @@ fn main() {
         if q > l_diffraction {
           p *= (l_diffraction/q).powi(2);
         }
+        
+        status = q_prime;
         // Compute the next values in a RK4 step
         (q, q_prime) = rk4((q, q_prime), |y| h_dydt(y, p, HT));
         // q = 0.3;
@@ -85,6 +89,9 @@ fn main() {
         history.push((t, q, q_prime, p));
         println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}", t, t-delta, q, p, q_prime);
         results.push((t, q, q_prime, p));
+    }
+    if t < tf {
+      println!("Terminated by convergence to stationary state.")
     }
     // plot_results(&results).expect("Failed to plot results");
     output.push(&mode);
