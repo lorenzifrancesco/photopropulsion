@@ -49,7 +49,7 @@ fn main() {
     let alphart = config.alphart;
     let l_diffraction = config.l_diffraction;
     let threshold = 2e-8; // empirically determined
-  let mut status: f64 = -1.0;
+    let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
 

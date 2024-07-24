@@ -10,6 +10,8 @@ from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import pandas as pd
 
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
 p1_range = np.linspace(0.001, 1.0, 10) # percent of the lower frequency laser 
 p2_range = np.linspace(0.0, 1.0, 10) # reflectivity
 
@@ -38,25 +40,38 @@ for (i, p1) in enumerate(p1_range):
 
 rust_program = "./target/release/photopropulsion"
 
-for (i, p1) in enumerate(p1_range):
-  for (j, p2) in enumerate(p2_range):
-    with open("input/config.toml", "w") as config_file:
-        toml.dump(configurations[i][j], config_file)
-
-    result = subprocess.run([rust_program], capture_output=True, text=True)
+def run_simulation(i, j, config):
+    config_file_path = f"input/config_{i}_{j}.toml"
+    
+    with open(config_file_path, "w") as config_file:
+        toml.dump(config, config_file)
+    
+    result = subprocess.run([rust_program, config_file_path], capture_output=True, text=True)
+    
     output = result.stdout.strip()
     lines = output.splitlines()
     last_line = lines[-1].strip()
+    
     try:
-      result_float = float(last_line)
-      print(result_float)
-      results_matrix[i, j] = result_float
-      
+        result_float = float(last_line)
+        return i, j, result_float
     except ValueError as e:
-      print(f"Failed to convert the last line to float: {e}")
-      
+        print(f"Failed to convert the last line to float: {e}")
+        return i, j, None
       
 
+tasks = [(i, j, configurations[i][j]) for i in range(len(p1_range)) for j in range(len(p2_range))]
+
+num_workers = max(1, os.cpu_count() - 6)
+with ProcessPoolExecutor() as executor:
+    futures = [executor.submit(run_simulation, i, j, config) for (i, j, config) in tasks]
+    
+    for future in as_completed(futures):
+        i, j, result_float = future.result()
+        if result_float is not None:
+            results_matrix[i, j] = result_float
+
+     
 df = pd.DataFrame(results_matrix, index=p1_range, columns=p2_range)
 plt.figure(figsize=(3, 2.5))
 ax = sns.heatmap(df, annot=False, cmap='viridis', fmt=".2f", cbar=True, square=True)
