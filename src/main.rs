@@ -48,7 +48,7 @@ fn main() {
     let tf = config.tf;
     let alphart = config.alphart;
     let l_diffraction = config.l_diffraction;
-    let threshold = 2e-8; // empirically determined
+    let threshold = 2e-7; // empirically determined
     let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
@@ -87,11 +87,17 @@ fn main() {
         
         // Save to history
         history.push((t, q, q_prime, p));
-        println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}", t, t-delta, q, p, q_prime);
+        #[cfg(debug_assertions)] 
+        {
+          println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}", t, t-delta, q, p, q_prime, q_prime-status);
+        }
+
         results.push((t, q, q_prime, p));
     }
     if t < tf {
-      println!("Terminated by convergence to stationary state.")
+      println!("Terminated as stationary state.")
+    } else {
+      println!("Terminated by t > tf.")
     }
     // plot_results(&results).expect("Failed to plot results");
     output.push(&mode);
