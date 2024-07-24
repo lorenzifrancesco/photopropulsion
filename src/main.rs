@@ -48,6 +48,7 @@ fn main() {
     let alphart = config.alphart;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
+    let l_diffraction: f64 = 0.5;
 
     let mode = &config.mode;
     let mut output = PathBuf::from(&config.output);
@@ -70,7 +71,9 @@ fn main() {
             }
           }
         }
-
+        if q > l_diffraction {
+          p *= (l_diffraction/q).powi(2);
+        }
         // Compute the next values in a RK4 step
         (q, q_prime) = rk4((q, q_prime), |y| h_dydt(y, p, HT));
         // q = 0.3;
