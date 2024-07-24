@@ -10,9 +10,11 @@ from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import pandas as pd
 
-p1_range = np.linspace(0.001, 0.1, 3) # percent of the lower frequency laser 
-p2_range = np.linspace(0.0, 1.0, 10) # reflectivity
-mode = "delay.csv"
+p1_range = np.linspace(0.001, 0.1, 3)
+p1_range = np.array([0.001, 0.05, 0.1])
+p2_range = np.linspace(0.0, 1.0, 10) 
+mode = "delay"
+file = "auto.csv"
 output = "results/"
 override = 1
 
@@ -33,6 +35,7 @@ if not os.path.exists("results/terminal_vel.npy") or override:
         "tf":100.0, # very high value to allow the termination due to stationary state detection.
         "alphart":float(p2),
         "l_diffraction":0.05,
+        "file":file,
         "mode":mode,
         "output":output
         }

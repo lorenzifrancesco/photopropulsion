@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # Load the CSV file into a pandas DataFrame
 dfnothing = pd.read_csv('results/nothing.csv')
 dflubin = pd.read_csv('results/lubin.csv')
-dfdelay = pd.read_csv('results/delay.csv')
+dfdelay = pd.read_csv('results/delay03.csv')
 dfdelay9 = pd.read_csv('results/delay09.csv')
 dfdelay6 = pd.read_csv('results/delay06.csv')
 dfdelay3 = pd.read_csv('results/delay03.csv')
@@ -55,10 +55,10 @@ labels = [r"$\alpha=0.3$", r"$\alpha=0.6$", r"$\alpha=0.9$", r"no delay", r"$\al
 plt.figure(figsize=(3, 2.6))
 for i in range(5):
   # Plotting P
-  plt.plot(time, P1[i], linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
+  plt.plot(time, P1[i]/(1/(1-0.3*(i+1))), linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
   plt.xlabel(r'$t/t_{\mathrm{rel}}$')
   plt.ylabel(r'$P/P_0$')
   plt.grid(grid)
   plt.legend()
   plt.tight_layout()
-plt.savefig('media/P_compare'+file_type)  # Save plot as PDF for LaTeX
+plt.savefig('media/P_ratio_compare'+file_type)  # Save plot as PDF for LaTeX
