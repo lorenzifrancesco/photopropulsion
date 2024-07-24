@@ -77,7 +77,6 @@ plt.figure(figsize=(3, 2.5))
 contour = plt.contourf(P1, P2, results_matrix, cmap='viridis', levels=20)
 cbar = plt.colorbar(contour, label=r'$\dot{q}_\infty$')
 
-# # Add contour lines on top of filled contours (optional)
 # ax = plt.contour(P1, P2, results_matrix, colors='k', levels=10, linestyles='--')
 
 plt.xlabel(r'$\alpha$')
