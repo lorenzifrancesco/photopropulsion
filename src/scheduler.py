@@ -10,12 +10,13 @@ from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import pandas as pd
 
-p1_range = np.linspace(0.001, 0.2, 3) # percent of the lower frequency laser 
+p1_range = np.linspace(0.001, 0.1, 3) # percent of the lower frequency laser 
 p2_range = np.linspace(0.0, 1.0, 10) # reflectivity
 mode = "delay.csv"
 output = "results/"
+override = 1
 
-if not os.path.exists("results/terminal_vel.npy") or True:
+if not os.path.exists("results/terminal_vel.npy") or override:
   print("Computing...")
   configurations = [[{} for _ in p2_range] for _ in p1_range]
   results_matrix = np.zeros((len(p1_range), len(p2_range)))
@@ -81,19 +82,13 @@ plt.tight_layout()
 plt.savefig("media/heatmap.pdf")
 
 
-P1, P2 = np.meshgrid(p1_range, p2_range)
+P1, P2 = np.meshgrid(p2_range, p1_range)
 print(np.shape(P1))
 plt.figure(figsize=(3, 2.5))
-contour = plt.contourf(P1, P2, results_matrix, cmap='viridis', levels=20)
+contour = plt.contourf(P2, P1, results_matrix, cmap='viridis', levels=20)
 cbar = plt.colorbar(contour, label=r'$\dot{q}_\infty$')
-
-# ax = plt.contour(P1, P2, results_matrix, colors='k', levels=10, linestyles='--')
-
 plt.xlabel(r'$q_0$')
 plt.ylabel(r'$\alpha$')
-# plt.xticks(np.round(p1_range, 2))  # X-axis ticks formatted to 2 decimal places
-# plt.yticks(np.round(p2_range, 2))# ax.set_xticklabels([f"{x:.2f}" for x in df.columns], 
-
 num_xticks = 5  # Number of xticks you want
 xtick_positions = np.linspace(p1_range.min(), p1_range.max(), num_xticks)
 xtick_labels = [fr"${pos:.2f}$" for pos in xtick_positions]
@@ -116,12 +111,13 @@ ls_list = ['-', '--', ':', '-.', '-.']
 
 plt.figure(figsize=(3, 2.5))
 for i in range(len(p1_range)): 
-  plt.plot(p2_range, results_matrix[i, :], color=color_list[i], ls=ls_list[i], lw=1.5, label=rf"{p1_range[i]:.2f}")
+  plt.plot(p2_range, results_matrix[i, :], 
+           color=color_list[i], ls=ls_list[i], lw=1.5, label=rf"$q_0={p1_range[i]:.3f}$")
   
 cbar = plt.colorbar(contour, label=r'$\dot{q}_\infty$')
 plt.xlabel(r'$\alpha$')
 plt.ylabel(r'$\dot{q}_\infty$')
-
+plt.legend()
 num_xticks = 5  # Number of xticks you want
 xtick_positions = np.linspace(p2_range.min(), p2_range.max(), num_xticks)
 xtick_labels = [fr"${pos:.2f}$" for pos in xtick_positions]
