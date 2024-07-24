@@ -26,7 +26,8 @@ struct Config {
     mode: String,
     output: String,
     tf: f64,
-    alphart: f64
+    alphart: f64,
+    l_diffraction: f64
 }
 
 fn load_config() -> Config {
@@ -46,9 +47,9 @@ fn main() {
     let mut t = config.t;
     let tf = config.tf;
     let alphart = config.alphart;
+    let l_diffraction: f64 = config.l_diffraction;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
-    let l_diffraction: f64 = 0.5;
 
     let mode = &config.mode;
     let mut output = PathBuf::from(&config.output);
