@@ -10,7 +10,7 @@ from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import pandas as pd
 
-p1_range = np.linspace(0.001, 1.0, 10) # percent of the lower frequency laser 
+p1_range = np.linspace(0.001, 0.2, 10) # percent of the lower frequency laser 
 p2_range = np.linspace(0.0, 1.0, 10) # reflectivity
 
 configurations = [[{} for _ in p2_range] for _ in p1_range]
@@ -37,6 +37,7 @@ for (i, p1) in enumerate(p1_range):
       }
 
 rust_program = "./target/release/photopropulsion"
+print("Running the Rust program in ", rust_program)
 
 for (i, p1) in enumerate(p1_range):
   for (j, p2) in enumerate(p2_range):
@@ -46,17 +47,17 @@ for (i, p1) in enumerate(p1_range):
     result = subprocess.run([rust_program], capture_output=True, text=True)
     output = result.stdout.strip()
     lines = output.splitlines()
+    print(lines[-2])
     last_line = lines[-1].strip()
     try:
       result_float = float(last_line)
-      print(result_float)
+      print(i, j, result_float)
       results_matrix[i, j] = result_float
       
     except ValueError as e:
       print(f"Failed to convert the last line to float: {e}")
       
-      
-
+np.save("results/terminal_vel.npy", results_matrix)
 df = pd.DataFrame(results_matrix, index=p1_range, columns=p2_range)
 plt.figure(figsize=(3, 2.5))
 ax = sns.heatmap(df, annot=False, cmap='viridis', fmt=".2f", cbar=True, square=True)

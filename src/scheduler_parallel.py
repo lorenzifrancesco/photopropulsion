@@ -12,8 +12,8 @@ import pandas as pd
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-p1_range = np.linspace(0.001, 1.0, 10)  # percent of the lower frequency laser
-p2_range = np.linspace(0.0, 1.0, 10)  # reflectivity
+p1_range = np.linspace(0.001, 1.0, 4)  # percent of the lower frequency laser
+p2_range = np.linspace(0.0, 1.0, 4)  # reflectivity
 
 configurations = [[{} for _ in p2_range] for _ in p1_range]
 results_matrix = np.zeros((len(p1_range), len(p2_range)))
@@ -32,7 +32,7 @@ for (i, p1) in enumerate(p1_range):
             "delta": 0.0,
             "t": 0.0,
             # very high value to allow the termination due to stationary state detection.
-            "tf": 1.0,
+            "tf": 100.0,
             "alphart": float(p2),
             "l_diffraction": 0.05,
             "mode": mode,
@@ -40,7 +40,7 @@ for (i, p1) in enumerate(p1_range):
         }
 
 rust_program = "./target/release/photopropulsion"
-
+print("Running the Rust program in ", rust_program)
 
 def run_simulation(i, j, config):
     config_file_path = f"input/config_{i}_{j}.toml"
@@ -53,6 +53,7 @@ def run_simulation(i, j, config):
 
     output = result.stdout.strip()
     lines = output.splitlines()
+    print(lines[-2])
     last_line = lines[-1].strip()
 
     try:
@@ -101,14 +102,8 @@ P1, P2 = np.meshgrid(p1_range, p2_range)
 plt.figure(figsize=(3, 2.5))
 contour = plt.contourf(P1, P2, results_matrix, cmap='viridis', levels=20)
 cbar = plt.colorbar(contour, label=r'$\dot{q}_\infty$')
-
-# ax = plt.contour(P1, P2, results_matrix, colors='k', levels=10, linestyles='--')
-
 plt.xlabel(r'$\alpha$')
 plt.ylabel(r'$q_0$')
-# plt.xticks(np.round(p1_range, 2))  # X-axis ticks formatted to 2 decimal places
-# plt.yticks(np.round(p2_range, 2))# ax.set_xticklabels([f"{x:.2f}" for x in df.columns],
-
 num_xticks = 5  # Number of xticks you want
 xtick_positions = np.linspace(p1_range.min(), p1_range.max(), num_xticks)
 xtick_labels = [fr"${pos:.2f}$" for pos in xtick_positions]

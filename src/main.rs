@@ -24,6 +24,7 @@ struct Config {
     delta: f64,
     t: f64,
     mode: String,
+    file: String,
     output: String,
     tf: f64,
     alphart: f64,
@@ -31,7 +32,7 @@ struct Config {
 }
 
 fn load_config() -> Config {
-  let config_content = fs::read_to_string("input/config.toml").expect("Failed to read config file");
+let config_content = fs::read_to_string("input/config.toml").expect("Failed to read config file");
   toml::from_str(&config_content).expect("Failed to parse config file")
 }
 
@@ -54,15 +55,16 @@ fn main() {
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
 
     let mode = &config.mode;
+    let file = &config.file;
     let mut output = PathBuf::from(&config.output);
 
-    if mode == "lubin.csv" {
+    if mode == "lubin" {
       p /= 1.0 - alphart;
     }
 
     results.push((t, q, q_prime, p));
     while (t < tf) && (q_prime - status > threshold){
-        if mode == "delay.csv" {
+        if mode == "delay" {
           if !(t==0.0) {
             let p_past = get_p_past(&history, t);
             delta = get_delta(&history, t);
@@ -100,7 +102,7 @@ fn main() {
       println!("Terminated by t > tf.")
     }
     // plot_results(&results).expect("Failed to plot results");
-    output.push(&mode);
+    output.push(&file);
     save_results_to_csv(output.as_path(), &results);
     println!("{}", q_prime);
 }

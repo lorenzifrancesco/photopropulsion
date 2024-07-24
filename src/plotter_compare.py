@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 dfnothing = pd.read_csv('results/nothing.csv')
 dflubin = pd.read_csv('results/lubin.csv')
 dfdelay = pd.read_csv('results/delay.csv')
+dfdelay2 = pd.read_csv('results/delay2.csv')
+dfdelay3 = pd.read_csv('results/delay3.csv')
 
 
 # Extract data from the DataFrame
