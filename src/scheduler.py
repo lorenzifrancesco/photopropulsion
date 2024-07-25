@@ -11,12 +11,12 @@ import seaborn as sns
 import pandas as pd
 
 p1_range = np.linspace(0.001, 0.1, 3)
-p1_range = np.array([0.01, 0.02])
-p2_range = np.linspace(0.0, 0.9, 10)
+p1_range = np.array([0.001, 0.05, 0.1])
+p2_range = np.linspace(0.0, 0.9, 50)
 mode = "delay"
 file = "auto.csv"
 output = "results/"
-override = 1
+override = 0
 
 if not os.path.exists("results/terminal_vel.npy") or override:
     print("Computing...")
@@ -113,14 +113,13 @@ print("Plotting...")
 # plt.tight_layout()
 # plt.savefig("media/contour.pdf")
 
-# color_list = ['r', 'b', 'g', 'm', 'orange']
-# ls_list = ['-', '--', ':', '-.', '-.']
+color_list = ['r', 'b', 'g', 'm', 'orange']
+ls_list = ['-', '--', ':', '-.', '-.']
 # plt.figure(figsize=(3, 2.5))
 # for i in range(len(p1_range)):
 #     plt.plot(p2_range, results_matrix[i, :],
 #              color=color_list[i], ls=ls_list[i], lw=1.5, label=rf"$q_0={p1_range[i]:.3f}$")
 
-# cbar = plt.colorbar(contour, label=r'$\dot{q}_\infty$')
 # plt.xlabel(r'$\alpha$')
 # plt.ylabel(r'$\dot{q}_\infty$')
 # plt.legend()
@@ -133,8 +132,6 @@ print("Plotting...")
 # plt.savefig("media/terminal_lines.pdf")
 
 # single line
-color_list = ['r', 'b', 'g', 'm', 'orange']
-ls_list = ['-', '--', ':', '-.', '-.']
 plt.figure(figsize=(3, 2.5))
 plt.plot(p2_range, results_matrix[0, :]*(1-p2_range),
           color=color_list[0], ls=ls_list[0], lw=1.5)
@@ -148,3 +145,19 @@ plt.xticks(xtick_positions, xtick_labels)
 
 plt.tight_layout()
 plt.savefig("media/P_ratio_compare.pdf")
+
+plt.figure(figsize=(3, 2.5))
+for i in range(len(p1_range)):
+    plt.plot(p2_range, results_matrix[i, :]*(1-p2_range),
+             color=color_list[i], ls=ls_list[i], lw=1.5, label=rf"$q_0={p1_range[i]:.3f}$")
+
+plt.xlabel(r'$\alpha$')
+plt.ylabel(r'$\tilde{P}_\infty / \bar{P}$')
+plt.legend()
+num_xticks = 5  # Number of xticks you want
+xtick_positions = np.linspace(p2_range.min(), p2_range.max(), num_xticks)
+xtick_labels = [fr"${pos:.2f}$" for pos in xtick_positions]
+plt.xticks(xtick_positions, xtick_labels)
+
+plt.tight_layout()
+plt.savefig("media/P_lines.pdf")
