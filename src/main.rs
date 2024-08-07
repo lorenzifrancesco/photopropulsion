@@ -104,5 +104,5 @@ fn main() {
     // plot_results(&results).expect("Failed to plot results");
     output.push(&file);
     save_results_to_csv(output.as_path(), &results);
-    println!("{}", p);
+    println!("{}", q_prime);
 }
