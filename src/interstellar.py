@@ -10,7 +10,7 @@ from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import pandas as pd
 
-power_list = np.array([1.0]) * 1e9 # W
+power_list = np.array([1.0, 100.0, 10.0]) * 1e9 # W
 for pidx, power in enumerate(power_list):
   # SI section
   sail_mass = 10e-3  # kg
@@ -113,7 +113,7 @@ for pidx, power in enumerate(power_list):
   np.set_printoptions(precision=10)
   for (j, alpha) in enumerate(p2_range):
       plt.plot(eta, results_matrix[:, j],
-              color=color_list[j], ls=ls_list[j], lw=0.5, label=label_list[j])
+              color=color_list[j], ls=ls_list[j], lw=1.5, label=label_list[j])
 
   td_fom = 2*power * alpha1/(3e8 * (sail_mass + payload_mass)) * tf / 3e8
   td_fom[td_fom > 1] = np.nan
