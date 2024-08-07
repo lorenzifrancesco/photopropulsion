@@ -13,7 +13,7 @@ use crate::io::*;
 pub mod solver;
 use crate::solver::*; 
 
-const HT: f64 = 0.0001; // Time step
+const HT: f64 = 0.00001; // Time step
 
 
 #[derive(Debug, Deserialize)]
