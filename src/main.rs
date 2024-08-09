@@ -69,7 +69,9 @@ fn main() {
             let p_past = get_p_past(&history, t);
             delta = get_delta(&history, t);
             if !p_past.is_nan() {
-              p = 1.0 + alphart * p_past;
+              // multiply here by the D factor and by the diffraction renormalization factor.
+              let doppler = (1.0 - q_prime)/(1.0 + q_prime);
+              p = 1.0 + alphart * p_past * doppler;
             } else {
               println!("p_past is NaN");
               p = 1.0;
