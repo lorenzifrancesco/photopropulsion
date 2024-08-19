@@ -1,5 +1,7 @@
 use log::{warn, debug};
 
+pub const HT: f64 = 0.00001; // Time step
+
 pub fn h_dydt(y: (f64, f64), p: f64, ht: f64) -> (f64, f64) {
   (ht *y.1, 
   ht *2.0 * p * (1.0 - y.1.powi(2)).powf(3.0/2.0) * (1.0 - y.1) / (1.0 + y.1))
@@ -33,6 +35,16 @@ pub fn get_p_past(history: &Vec<(f64, f64, f64, f64)>, t: f64) -> f64 {
     0.0
   } else {
     interpolate(history, t-delta, 2)
+  }
+}
+
+pub fn get_spectrum_past<'a>(power_spectrum: &'a Vec<Vec<f64>>, history: &Vec<(f64, f64, f64, f64)>, t:f64) -> Vec<f64> {
+  let n = power_spectrum[0].len();
+  let delta = get_delta(history, t);
+  if t-delta < 0.0 {
+    vec![0.0; n]
+  } else {
+    power_spectrum[((t-delta)/HT).floor() as usize].clone()
   }
 }
 

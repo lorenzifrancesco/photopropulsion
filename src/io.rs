@@ -76,7 +76,7 @@ pub fn save_spectrum_to_csv(output: &Path, y: &Vec<Vec<f64>>) {
   // Write the header
   let header = vec!["F".to_string(), "P".to_string()];
   writer.write_record(&header).expect("Failed writing header");
-  let steps = y[0].len()-1;
+  let steps = y[0].len();
   // Write the rows
   let mut row = vec!["ciao".to_string(); 2]; 
   for i in 0..steps {

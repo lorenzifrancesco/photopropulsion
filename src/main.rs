@@ -13,9 +13,6 @@ use crate::io::*;
 pub mod solver;
 use crate::solver::*; 
 
-const HT: f64 = 0.00001; // Time step
-
-
 #[derive(Debug, Deserialize)]
 struct Config {
     q: f64,
@@ -46,6 +43,7 @@ fn main() {
     let mut p= config.p;
     let mut delta = config.delta;
     let mut t = config.t;
+    let mut cnt = 0;
     let tf = config.tf;
     let alphart = config.alphart;
     let l_diffraction = config.l_diffraction;
@@ -53,9 +51,11 @@ fn main() {
     let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
-    let mut frequency_range: Vec<f64> = Vec::new();
-    let mut power_spectrum: Vec<f64> = Vec::new();
-    frequency_range.push(1.0);
+    let n_frequencies = 20;
+    let frequency_range: Vec<f64> = (0..n_frequencies).map(|x| x as f64 /(n_frequencies as f64)).collect();
+    let mut power_spectrum: Vec<Vec<f64>> = vec![vec![0.0; 1000]; 1];
+    let mut laser_power: Vec<f64> = vec![0.0; n_frequencies];
+    laser_power[n_frequencies-1] = 1.0;
 
     let mode = &config.mode;
     let file = &config.file;
@@ -75,9 +75,16 @@ fn main() {
               // multiply here by the D factor and by the diffraction renormalization factor.
               let doppler = (1.0 - q_prime)/(1.0 + q_prime);
 
-              frequency_range.iter_mut().for_each(|freq| *freq *= doppler);
-              frequency_range.push(1.0);
-              power_spectrum.push(alphart * p_past * doppler);
+              let spectrum_past = get_spectrum_past(&power_spectrum, &history, t);
+              let mut reflected_spectrum  = vec![0.0; n_frequencies];
+              println!("Doppler: {}", doppler);
+              for i in 0..n_frequencies {
+                reflected_spectrum[((i as f64) * doppler).round() as usize] += alphart * doppler * spectrum_past[i];
+              }
+              let sum_vector: Vec<f64> = laser_power.clone().iter().zip(reflected_spectrum.iter()).map(|(a, b)| *a + *b).collect();
+              power_spectrum[cnt] = sum_vector;
+              println!("{:?}", power_spectrum[cnt]);
+              power_spectrum.push(vec![0.0; n_frequencies]); 
               // println!("{:?}", frequency_range);
               // println!("{:?}", power_spectrum);
 
@@ -86,7 +93,11 @@ fn main() {
             } else {
               println!("p_past is NaN");
               p = 1.0;
+              power_spectrum.push(laser_power.clone());
             }
+          }
+          else {
+            power_spectrum.push(laser_power.clone());
           }
         }
         if q > l_diffraction {
@@ -99,6 +110,7 @@ fn main() {
         // q = 0.3;
         // q_prime = 0.0;
         t += HT;
+        cnt += 1;
         
         // Save to history
         history.push((t, q, q_prime, p));
@@ -118,7 +130,8 @@ fn main() {
     output.push(&file);
     save_results_to_csv(output.as_path(), &results);
     output.set_file_name("spectrum.csv");
-    let results_spectrum = vec![frequency_range, power_spectrum];
+    println!("Final power spectrum: {:?}", power_spectrum[cnt-1]);
+    let results_spectrum = vec![frequency_range, power_spectrum[cnt-1].clone()];
     save_spectrum_to_csv(output.as_path(), &results_spectrum);
     println!("{}", q_prime);
 }
