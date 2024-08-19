@@ -53,10 +53,13 @@ fn main() {
     let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
+    let mut frequency_range: Vec<f64> = Vec::new();
+    let mut power_spectrum: Vec<f64> = Vec::new();
+    frequency_range.push(1.0);
 
     let mode = &config.mode;
     let file = &config.file;
-    let mut output = PathBuf::from(&config.output);
+    let mut output: PathBuf = PathBuf::from(&config.output);
 
     if mode == "lubin" {
       p /= 1.0 - alphart;
@@ -71,7 +74,15 @@ fn main() {
             if !p_past.is_nan() {
               // multiply here by the D factor and by the diffraction renormalization factor.
               let doppler = (1.0 - q_prime)/(1.0 + q_prime);
+
+              frequency_range.iter_mut().for_each(|freq| *freq *= doppler);
+              frequency_range.push(1.0);
+              power_spectrum.push(alphart * p_past * doppler);
+              // println!("{:?}", frequency_range);
+              // println!("{:?}", power_spectrum);
+
               p = 1.0 + alphart * p_past * doppler;
+
             } else {
               println!("p_past is NaN");
               p = 1.0;
@@ -106,5 +117,8 @@ fn main() {
     // plot_results(&results).expect("Failed to plot results");
     output.push(&file);
     save_results_to_csv(output.as_path(), &results);
+    output.set_file_name("spectrum.csv");
+    let results_spectrum = vec![frequency_range, power_spectrum];
+    save_spectrum_to_csv(output.as_path(), &results_spectrum);
     println!("{}", q_prime);
 }
