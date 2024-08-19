@@ -51,11 +51,14 @@ fn main() {
     let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
-    let n_frequencies = 20;
+    let n_frequencies = 200;
     let frequency_range: Vec<f64> = (0..n_frequencies).map(|x| x as f64 /(n_frequencies as f64)).collect();
     let mut power_spectrum: Vec<Vec<f64>> = vec![vec![0.0; 1000]; 1];
     let mut laser_power: Vec<f64> = vec![0.0; n_frequencies];
-    laser_power[n_frequencies-1] = 1.0;
+    // laser_power[n_frequencies-1] = 1.0;
+    for i in 0..n_frequencies {
+      laser_power[n_frequencies-1-i] = 1.0 * (-(i as f64).powi(2)/1.0).exp()
+    }
 
     let mode = &config.mode;
     let file = &config.file;
@@ -77,13 +80,13 @@ fn main() {
 
               let spectrum_past = get_spectrum_past(&power_spectrum, &history, t);
               let mut reflected_spectrum  = vec![0.0; n_frequencies];
-              println!("Doppler: {}", doppler);
+              // println!("Doppler: {}", doppler);
               for i in 0..n_frequencies {
                 reflected_spectrum[((i as f64) * doppler).round() as usize] += alphart * doppler * spectrum_past[i];
               }
               let sum_vector: Vec<f64> = laser_power.clone().iter().zip(reflected_spectrum.iter()).map(|(a, b)| *a + *b).collect();
               power_spectrum[cnt] = sum_vector;
-              println!("{:?}", power_spectrum[cnt]);
+              // println!("{:?}", power_spectrum[cnt]);
               power_spectrum.push(vec![0.0; n_frequencies]); 
               // println!("{:?}", frequency_range);
               // println!("{:?}", power_spectrum);
@@ -131,7 +134,7 @@ fn main() {
     save_results_to_csv(output.as_path(), &results);
     output.set_file_name("spectrum.csv");
     println!("Final power spectrum: {:?}", power_spectrum[cnt-1]);
-    let results_spectrum = vec![frequency_range, power_spectrum[cnt-1].clone()];
+    let results_spectrum = (frequency_range, power_spectrum.clone());
     save_spectrum_to_csv(output.as_path(), &results_spectrum);
     println!("{}", q_prime);
 }

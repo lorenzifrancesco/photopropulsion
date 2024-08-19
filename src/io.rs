@@ -69,19 +69,22 @@ pub fn save_results_to_csv(output: &Path, y: &Vec<(f64, f64, f64, f64)>) {
   writer.flush().expect("Failed to write the buffer");
 }
 
-pub fn save_spectrum_to_csv(output: &Path, y: &Vec<Vec<f64>>) {
+pub fn save_spectrum_to_csv(output: &Path, y: &(Vec<f64>, Vec<Vec<f64>>)) {
   // Create a CSV writer
   let mut writer = Writer::from_path(output).expect("Failed to create a CSV Writer");
 
   // Write the header
-  let header = vec!["F".to_string(), "P".to_string()];
-  writer.write_record(&header).expect("Failed writing header");
-  let steps = y[0].len();
+  let header: Vec<String> = (0..y.0.len()).map(|i| format!("Frequency {}", i)).collect();
+  writer.write_record(&header).expect("Failed to write header");
+
+  let steps = y.1.len();
+  let n_frequencies = y.0.len();
   // Write the rows
-  let mut row = vec!["ciao".to_string(); 2]; 
+  let mut row = vec!["ciao".to_string(); n_frequencies]; 
   for i in 0..steps {
-      row[0] = y[0][i].to_string();
-      row[1] = y[1][i].to_string();
+      for j in 0..n_frequencies {
+      row[j] = (y.1)[i][j].to_string();
+      }
       writer.write_record(&row).expect("Failed to write row");
   }
 
