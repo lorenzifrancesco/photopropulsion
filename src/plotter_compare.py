@@ -62,3 +62,16 @@ for i in range(5):
   plt.legend()
   plt.tight_layout()
 plt.savefig('media/P_ratio_compare'+file_type)  # Save plot as PDF for LaTeX
+
+
+labels = [r"$\alpha=0.3$", r"$\alpha=0.6$", r"$\alpha=0.9$", r"no delay", r"$\alpha=0$"]
+plt.figure(figsize=(3, 2.6))
+for i in range(5):
+  # Plotting P
+  plt.plot(time, P1[i], linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
+  plt.xlabel(r'$t/t_{\mathrm{rel}}$')
+  plt.ylabel(r'$\tilde{P}/P_0$')
+  plt.grid(grid)
+  plt.legend()
+  plt.tight_layout()
+plt.savefig('media/P_ratio_compare'+file_type)  # Save plot as PDF for LaTeX

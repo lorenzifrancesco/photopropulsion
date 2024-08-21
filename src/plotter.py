@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Load the CSV file into a pandas DataFrame
 results_file = 'results/delay.csv'
@@ -36,10 +37,11 @@ plt.tight_layout()
 plt.savefig('media/qdot'+file_type)  # Save plot as PDF for LaTeX
 
 # Plotting P
+# P = np.where(P == 1.0, np.nan,  P)
 plt.figure(figsize=(3, 2.5))
 plt.plot(time, P, linestyle='-', color='r', label=r'$P$', linewidth=lw)
 plt.xlabel(r'$t/t_{\mathrm{rel}}$')
-plt.ylabel(r'$P/P_0$')
+plt.ylabel(r'$\tilde{P}/P_0$')
 plt.grid(grid)
 # plt.legend()
 plt.tight_layout()

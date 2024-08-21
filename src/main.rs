@@ -119,7 +119,6 @@ fn main() {
         {
           println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}", t, t-delta, q, p, q_prime, q_prime-status);
         }
-
         results.push((t, q, q_prime, p));
     }
     if t < tf {

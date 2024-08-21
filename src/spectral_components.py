@@ -29,24 +29,42 @@ def plot_spectral_components(file_path):
     time_steps = np.arange(powers.shape[0])
 
     # cmap = get_cmap('rainbow')
+    lw=1.5
     norm = mcolors.Normalize(vmin=np.min(frequencies), vmax=np.max(frequencies))
+    tot_frequencies = frequencies.shape[1]
+    plt.figure(figsize=(3, 2.5))
     
-    plt.figure(figsize=(6, 4))
-    
-    for i in range(frequencies.shape[1]):
+    for i in range(tot_frequencies)[::-1]:
         # color = cmap(norm(frequencies[0, i]))
-        plt.plot(time_steps/len(time_steps), frequencies[:, i], label=f'Component {i + 1}')
+        plt.plot(time_steps/len(time_steps), frequencies[:, i], label=fr'$i= {tot_frequencies - i - 1}$', lw=lw)
     
     # sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     # sm.set_array([])
     # plt.colorbar(sm, label='Frequency')
     
     plt.xlabel(r'$t/t_f$')
-    plt.ylabel(r'$\omega/\omega_0$')
-    # plt.legend(loc='best')
+    plt.ylabel(r'$\omega_i/\omega_0$')
+    plt.legend(loc='best')
     # plt.grid(True)
     plt.tight_layout()
     plt.savefig("media/spectrum_lines.pdf")
+    
+    plt.figure(figsize=(3, 2.5))
+    
+    for i in range(tot_frequencies)[::-1]:
+        # color = cmap(norm(frequencies[0, i]))
+        plt.plot(time_steps/len(time_steps), powers[:, i], label=fr'$i = {tot_frequencies - i - 1}$', lw=lw)
+    
+    # sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    # sm.set_array([])
+    # plt.colorbar(sm, label='Frequency')
+    
+    plt.xlabel(r'$t/t_f$')
+    plt.ylabel(r'$\tilde{P_i}/P_0$')
+    plt.legend(loc='best')
+    # plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("media/spectrum_powers.pdf")
 
 file_path = 'results/spectrum.csv'
 plot_spectral_components(file_path)

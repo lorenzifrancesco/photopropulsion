@@ -48,9 +48,13 @@ pub fn get_spectral_components(power_spectrum: &Vec<Vec<(f64, f64)>>, history: &
     let doppler = (1.0 - q_prime_old)/(1.0 + q_prime_old);
     println!("{}", doppler);
     let idx = ((t-delta)/HT).floor() as usize;
-    let mut reflected_spectrum: Vec<(f64, f64)> = vec![];
+    let reflected_spectrum: Vec<(f64, f64)>;
     if !(idx >=power_spectrum.len()) {
       reflected_spectrum = power_spectrum[idx].clone();
+    } else {
+      reflected_spectrum = power_spectrum.last()
+      .expect("power_spectrum has no last!")
+      .clone();
     }
     for line in reflected_spectrum {
       new_power_spectrum.append(&mut vec![((line.0*doppler), (line.1*doppler*alphart))]);
