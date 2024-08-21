@@ -17,8 +17,8 @@ def plot_heatmap_from_csv(csv_file_path, output_image_path):
     P1, P2 = np.meshgrid(p1_range, p2_range)
     
     plt.figure(figsize=(3, 2.5))
-    contour = plt.contourf(P1, P2, results_matrix, cmap='viridis', levels=5)
-    cbar = plt.colorbar(contour, label=r'$\dot{q}_\infty$')
+    contour = plt.contourf(P1, P2, results_matrix, cmap='viridis', levels=5, alpha = 1.0)
+    cbar = plt.colorbar(contour, label=r'$\tilde{P}$ fraction')
     plt.xlabel(r'$\alpha$')
     plt.ylabel(r'$q_0$')
     num_xticks = 5  # Number of xticks you want
