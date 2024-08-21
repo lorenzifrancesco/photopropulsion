@@ -133,6 +133,6 @@ fn main() {
     output.set_file_name("spectrum.csv");
     println!("Final power spectrum: {:?}", power_spectrum[cnt-1]);
     // let results_spectrum = (frequency_range, power_spectrum.clone());
-    // save_spectrum_to_csv(output.as_path(), &results_spectrum);
+    save_spectral_components_to_csv(output.as_path(), &mut power_spectrum);
     println!("{}", q_prime);
 }

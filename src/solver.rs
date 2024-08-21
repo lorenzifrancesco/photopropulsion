@@ -44,11 +44,16 @@ pub fn get_spectral_components(power_spectrum: &Vec<Vec<(f64, f64)>>, history: &
   if t-delta < 0.0 {
     vec![(1.0, 1.0)]
   } else {
-    let q_prime_old = interpolate(history, t-delta, 2);
+    let q_prime_old = interpolate(history, t-delta, 3);
     let doppler = (1.0 - q_prime_old)/(1.0 + q_prime_old);
-    let reflected_spectrum = power_spectrum[((t-delta)/HT).floor() as usize].clone();
+    println!("{}", doppler);
+    let idx = ((t-delta)/HT).floor() as usize;
+    let mut reflected_spectrum: Vec<(f64, f64)> = vec![];
+    if !(idx >=power_spectrum.len()) {
+      reflected_spectrum = power_spectrum[idx].clone();
+    }
     for line in reflected_spectrum {
-      new_power_spectrum.append(&mut vec![((line.0 * doppler), (line.1 * doppler * alphart))]);
+      new_power_spectrum.append(&mut vec![((line.0*doppler), (line.1*doppler*alphart))]);
       // new_power_spectrum.append((1.1, 1.2));
     }
     new_power_spectrum.append(&mut vec![(1.0, 1.0)]);
@@ -92,6 +97,7 @@ fn t_segment(history: &Vec<(f64, f64, f64, f64)>, t: f64) -> (usize, usize) {
 
 // p_q = 1 : select q
 // p_q = 2 : select p
+// p_q = 3 : select q_prime
 fn interpolate(history: &Vec<(f64, f64, f64, f64)>, t: f64, p_q: usize) -> f64 {
   let seg: (usize, usize) = t_segment(history, t);
   let t_prev = history[seg.0].0;
@@ -100,11 +106,13 @@ fn interpolate(history: &Vec<(f64, f64, f64, f64)>, t: f64, p_q: usize) -> f64 {
   let prev = match p_q {
       1 => history[seg.0].1,
       2 => history[seg.0].3,
+      3 => history[seg.0].2,
       _ => panic!("invalid p_q")
   };
   let next = match p_q {
       1 => history[seg.1].1,
       2 => history[seg.1].3,
+      3 => history[seg.1].2,
       _ => panic!("invalid p_q")
   };
   prev + (next - prev) * (t - t_prev) / (t_next - t_prev)
