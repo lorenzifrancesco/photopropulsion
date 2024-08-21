@@ -38,6 +38,24 @@ pub fn get_p_past(history: &Vec<(f64, f64, f64, f64)>, t: f64) -> f64 {
   }
 }
 
+pub fn get_spectral_components(power_spectrum: &Vec<Vec<(f64, f64)>>, history: &Vec<(f64, f64, f64, f64)>, t:f64, alphart:f64) -> Vec<(f64, f64)> {
+  let mut new_power_spectrum: Vec<(f64, f64)> = vec![];
+  let delta = get_delta(history, t);
+  if t-delta < 0.0 {
+    vec![(1.0, 1.0)]
+  } else {
+    let q_prime_old = interpolate(history, t-delta, 2);
+    let doppler = (1.0 - q_prime_old)/(1.0 + q_prime_old);
+    let reflected_spectrum = power_spectrum[((t-delta)/HT).floor() as usize].clone();
+    for line in reflected_spectrum {
+      new_power_spectrum.append(&mut vec![((line.0 * doppler), (line.1 * doppler * alphart))]);
+      // new_power_spectrum.append((1.1, 1.2));
+    }
+    new_power_spectrum.append(&mut vec![(1.0, 1.0)]);
+    new_power_spectrum
+  }
+}
+
 pub fn get_spectrum_past<'a>(power_spectrum: &'a Vec<Vec<f64>>, history: &Vec<(f64, f64, f64, f64)>, t:f64) -> Vec<f64> {
   let n = power_spectrum[0].len();
   let delta = get_delta(history, t);
