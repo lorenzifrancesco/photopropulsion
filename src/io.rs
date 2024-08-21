@@ -91,3 +91,35 @@ pub fn save_spectrum_to_csv(output: &Path, y: &(Vec<f64>, Vec<Vec<f64>>)) {
   // Flush the writer
   writer.flush().expect("Failed to write the buffer");
 }
+
+pub fn save_spectral_components_to_csv(output: &Path, y: &mut Vec<Vec<(f64, f64)>>) {
+  // Create a CSV writer
+  let mut writer = Writer::from_path(output).expect("Failed to create a CSV Writer");
+  let maximum_n_lines = y.last().expect("defective spectrum").len();
+  let n_steps = y.len();
+for i in 0..y.len() {
+        let mut padded = vec![(0.0, 0.0); maximum_n_lines];
+        let start_index = maximum_n_lines - y[i].len();
+        padded[start_index..].copy_from_slice(&y[i]);
+        y[i] = padded;
+  }
+  // Write the header
+  let header: Vec<String> = (0..maximum_n_lines).map(|i| format!("f {}", i)).collect();
+  writer.write_record(&header).expect("Failed to write header");
+
+  // Write the rows
+  let mut row = vec!["ciao".to_string(); maximum_n_lines]; 
+  for i in 0..n_steps {
+      for j in 0..maximum_n_lines {
+      row[j] = (y[i])[j].0.to_string();
+      }
+      writer.write_record(&row).expect("Failed to write frequency row");
+      for j in 0..maximum_n_lines {
+      row[j] = (y[i])[j].1.to_string();
+      }
+      writer.write_record(&row).expect("Failed to write power row");
+  }
+
+  // Flush the writer
+  writer.flush().expect("Failed to write the buffer");
+}
