@@ -1,4 +1,6 @@
 import csv
+import matplotlib.pyplot as plt
+from scipy.constants import lambda2nu
 
 def compute_quadratic_coefficients(points):
     coefficients = []
@@ -22,24 +24,27 @@ def save_coefficients_to_csv(coefficients, filename):
         writer.writerow(['a0', 'a1', 'a2', 'x0', 'x1', 'x2'])  
         writer.writerows(coefficients)
 
-def load_points_from_csv(filename):
+def load_points_from_csv(dir, name):
     points = []
+    filename = dir+name+".csv"
     with open(filename, newline='') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
             x = float(row[0])
             y = float(row[1])
             points.append((x, y))
+    plt.figure(figsize=(4, 3))
+    plt.plot([lambda2nu(p[0] * 1e-6)*1e-12 for p in points], [p[1] for p in points], label=name)
+    plt.legend()
+    plt.xlabel(r"$f$ [THz]")
+    plt.ylabel(r"$\alpha$")
+    plt.tight_layout()
+    # plt.show()
+    plt.savefig("media/reflectivity/"+name+".pdf")
     return points
 
 if __name__ == "__main__":
-    # Load points from a CSV file
-    points = load_points_from_csv('data.csv')
-    
-    # Compute coefficients for quadratic interpolation
-    coefficients = compute_quadratic_coefficients(points)
-    
-    # Save coefficients to a CSV file
-    save_coefficients_to_csv(coefficients, 'coefficients.csv')
-
-    print("Coefficients have been saved to 'coefficients.csv'.")
+    dir = "input/reflectivity/"
+    names = ["braggSiN", "braggBN", "gmrSiN", "gmrBN"]
+    for n in names:
+      points = load_points_from_csv(dir, n)
