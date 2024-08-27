@@ -38,7 +38,7 @@ pub fn get_p_past(history: &Vec<(f64, f64, f64, f64)>, t: f64) -> f64 {
   }
 }
 
-pub fn get_spectral_components(power_spectrum: &Vec<Vec<(f64, f64)>>, history: &Vec<(f64, f64, f64, f64)>, t:f64, alphart:f64) -> Vec<(f64, f64)> {
+pub fn get_spectral_components(power_spectrum: &Vec<Vec<(f64, f64)>>, history: &Vec<(f64, f64, f64, f64)>, t:f64, alpha1: &Box<dyn Fn(f64) -> f64>, alpha2: f64) -> Vec<(f64, f64)> {
   let mut new_power_spectrum: Vec<(f64, f64)> = vec![];
   let delta = get_delta(history, t);
   if t-delta < 0.0 {
@@ -57,7 +57,7 @@ pub fn get_spectral_components(power_spectrum: &Vec<Vec<(f64, f64)>>, history: &
       .clone();
     }
     for line in reflected_spectrum {
-      new_power_spectrum.append(&mut vec![((line.0*doppler), (line.1*doppler*alphart))]);
+      new_power_spectrum.append(&mut vec![((line.0*doppler), (line.1*doppler*(alpha1(line.0) * alpha2)))]);
       // new_power_spectrum.append((1.1, 1.2));
     }
     new_power_spectrum.append(&mut vec![(1.0, 1.0)]);

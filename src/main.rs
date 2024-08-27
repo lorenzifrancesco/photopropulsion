@@ -60,6 +60,9 @@ fn main() {
     //   laser_power[n_frequencies-1-i] = 1.0 * (-(i as f64).powi(2)/1.0).exp()
     // }
 
+    let alpha1 = linear_interpolator("input/reflectivity/braggSiN.csv").expect("c");
+    let alpha2 = 0.9;
+
     let mode = &config.mode;
     let file = &config.file;
     let mut output: PathBuf = PathBuf::from(&config.output);
@@ -90,7 +93,7 @@ fn main() {
               // power_spectrum.push(vec![0.0; n_frequencies]); 
               // // println!("{:?}", frequency_range);
               // // println!("{:?}", power_spectrum);
-              power_spectrum.append(&mut vec![get_spectral_components(&power_spectrum, &history, t, alphart)]);
+              power_spectrum.append(&mut vec![get_spectral_components(&power_spectrum, &history, t, &alpha1, alpha2)]);
               p = 0.0;
               for line in power_spectrum[cnt].clone() {
                 p += line.1;

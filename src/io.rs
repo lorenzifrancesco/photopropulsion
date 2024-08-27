@@ -2,6 +2,9 @@
 use csv::Writer;
 use plotters::prelude::*;
 use std::path::Path;
+use std::error::Error;
+use csv::ReaderBuilder;
+
 
 pub fn plot_results(results: &Vec<(f64, f64, f64, f64)>) -> Result<(), Box<dyn std::error::Error>> {
   let root = BitMapBackend::new("media/q_prime.png", (600, 400)).into_drawing_area();
@@ -122,4 +125,70 @@ for i in 0..y.len() {
 
   // Flush the writer
   writer.flush().expect("Failed to write the buffer");
+}
+
+
+type DataPoint = (f64, f64);
+
+fn read_reflectivity_from_csv(file_path: &str) -> Result<Vec<DataPoint>, Box<dyn Error>> {
+    let mut rdr = ReaderBuilder::new().from_path(file_path)?;
+    let mut data_points = Vec::new();
+
+    for result in rdr.records() {
+        let record = result?;
+        let x: f64 = record[0].parse()?;
+        let y: f64 = record[1].parse()?;
+        data_points.push((x, y));
+    }
+
+    data_points.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+    Ok(data_points)
+}
+
+
+pub fn linear_interpolator(file_path: &str) -> Result<Box<dyn Fn(f64) -> f64>, Box<dyn Error>> {
+  let data_points = read_reflectivity_from_csv(file_path)?;
+
+  let interpolator = move |x: f64| -> f64 {
+      if data_points.is_empty() {
+          panic!("No data points available for interpolation");
+      }
+
+      // If x is out of bounds, extrapolate using the first/last segment
+      if x <= data_points[0].0 {
+          let (x0, y0) = data_points[0];
+          let (x1, y1) = data_points[1];
+          let result = y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+          if result > 0.0 {
+            return result
+          } else{
+              return 0.0
+          }
+      }
+      if x >= data_points[data_points.len() - 1].0 {
+          let (x0, y0) = data_points[data_points.len() - 2];
+          let (x1, y1) = data_points[data_points.len() - 1];
+          let result = y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+          if result > 0.0 {
+            return result
+          } else{
+              return 0.0
+          }
+      }
+
+      // Find the interval [x0, x1] where x0 <= x <= x1
+      for i in 0..data_points.len() - 1 {
+          let (x0, y0) = data_points[i];
+          let (x1, y1) = data_points[i + 1];
+
+          if x0 <= x && x <= x1 {
+              return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+          }
+      }
+
+      unreachable!() // This should never be reached
+  };
+
+  Ok(Box::new(interpolator))
 }
