@@ -24,7 +24,8 @@ struct Config {
     file: String,
     output: String,
     tf: f64,
-    alphart: f64,
+    alpha1: f64, // set to 0.0 to enable the reading of the spectrum
+    alpha2: f64,
     l_diffraction: f64
 }
 
@@ -45,7 +46,8 @@ fn main() {
     let mut t = config.t;
     let mut cnt = 0;
     let tf = config.tf;
-    let alphart = config.alphart;
+    let alpha1 = config.alpha1;
+    let alpha2 = config.alpha2;
     let l_diffraction = config.l_diffraction;
     let threshold = 2e-7; // empirically determined
     let mut status: f64 = -1.0;
@@ -59,9 +61,13 @@ fn main() {
     // for i in 0..n_frequencies {
     //   laser_power[n_frequencies-1-i] = 1.0 * (-(i as f64).powi(2)/1.0).exp()
     // }
-
-    let alpha1 = linear_interpolator("input/reflectivity/braggSiN.csv").expect("c");
-    let alpha2 = 0.9;
+    let alpha1_fun;
+    if alpha1 == 0.0 {
+      alpha1_fun = linear_interpolator("input/reflectivity/braggSiN.csv").expect("c");
+    } else {
+      alpha1_fun = constant_interpolator(alpha1).expect("c");
+    }
+    let alphart = alpha1*alpha2;
 
     let mode = &config.mode;
     let file = &config.file;
@@ -93,7 +99,7 @@ fn main() {
               // power_spectrum.push(vec![0.0; n_frequencies]); 
               // // println!("{:?}", frequency_range);
               // // println!("{:?}", power_spectrum);
-              power_spectrum.append(&mut vec![get_spectral_components(&power_spectrum, &history, t, &alpha1, alpha2)]);
+              power_spectrum.append(&mut vec![get_spectral_components(&power_spectrum, &history, t, &alpha1_fun, alpha2)]);
               p = 0.0;
               for line in power_spectrum[cnt].clone() {
                 p += line.1;
@@ -121,7 +127,7 @@ fn main() {
         // Save to history
         history.push((t, q, q_prime, p));
         #[cfg(debug_assertions)] 
-        {<
+        {
           println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}", t, t-delta, q, p, q_prime, q_prime-status);
         }
         results.push((t, q, q_prime, p));

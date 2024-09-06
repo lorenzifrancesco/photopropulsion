@@ -43,7 +43,7 @@ max_temp = ((1-alpha1) * power / (2 * epsilon * S * sigma_sb))**(1/4)
 
 # Adimensional section
 p1_range = q0 / xrel_range
-p2_range = [alpha1 * alpha2, 0.0]
+p2_range = [alpha1, 0.0]
 mode_range = ["delay", "no"]
 tf_range = tf / trel_range
 l_diffraction_range = l_diffraction / xrel_range
@@ -72,7 +72,8 @@ if not os.path.exists("results/delta_v.npy") or override:
                 "t": 0.0,
                 # very high value to allow the termination due to stationary state detection.
                 "tf": float(tf_range[i]),
-                "alphart": float(p2),
+                "alpha1": float(p2),
+                "alpha2": float(alpha2),
                 "l_diffraction": float(l_diffraction_range[i]),
                 "file": file,
                 "mode": str(mode_range[j]),
@@ -109,7 +110,7 @@ color_list = ['r', 'b', 'g', 'm', 'orange']
 ls_list = ['-', '--', ':', '-.', '-.']
 
 # single line
-plt.figure(figsize=(30, 20.5))
+plt.figure(figsize=(3, 2.5))
 label_list = [r'$\Delta v ^{\mathrm{M}}/c$', r'$\Delta v ^{\mathrm{S}}/c$']
 np.set_printoptions(precision=10)
 for (j, alpha) in enumerate(p2_range):

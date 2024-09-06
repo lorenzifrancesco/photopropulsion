@@ -11,7 +11,7 @@ import seaborn as sns
 import pandas as pd
 
 # convert in "list 1"
-power_list = np.array([1.0, 100.0, 10.0]) * 1e9  # W
+power_list = np.array([1.0, 10.0]) * 1e9  # W
 
 
 for pidx, power in enumerate(power_list):
@@ -43,7 +43,9 @@ for pidx, power in enumerate(power_list):
 
     # Adimensional section
     p1_range = q0 / xrel_range
-    p2_range = [alpha1 * alpha2, 0.0]
+    p2_range = [alpha1, 0.0]
+    modes = ["delay", "no"]
+    
     tf_range = tf / trel_range
     l_diffraction_range = l_diffraction / xrel_range
     print(p1_range)
@@ -72,10 +74,11 @@ for pidx, power in enumerate(power_list):
                     "t": 0.0,
                     # very high value to allow the termination due to stationary state detection.
                     "tf": float(tf_range[i]),
-                    "alphart": float(p2),
+                    "alpha1": float(p2),
+                    "alpha2": float(alpha2),
                     "l_diffraction": float(l_diffraction_range[i]),
                     "file": file,
-                    "mode": mode,
+                    "mode": modes[j],
                     "output": output
                 }
 

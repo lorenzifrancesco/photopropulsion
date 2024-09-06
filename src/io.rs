@@ -192,3 +192,10 @@ pub fn linear_interpolator(file_path: &str) -> Result<Box<dyn Fn(f64) -> f64>, B
 
   Ok(Box::new(interpolator))
 }
+
+pub fn constant_interpolator(value: f64) -> Result<Box<dyn Fn(f64) -> f64>, Box<dyn Error>> {
+  let interpolator = move |x: f64| -> f64 {
+    value
+  };
+  Ok(Box::new(interpolator))
+}
