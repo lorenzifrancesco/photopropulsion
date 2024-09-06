@@ -116,8 +116,8 @@ for pidx, power in enumerate(power_list):
     # single line
     plt.figure(figsize=(3, 2.5))
     eta = payload_mass/sail_mass
-    label_list = [r'$\Delta v ^{\mathrm{M}}/c$',r'$\Delta v ^{\alpha}/c$',
-                  r'$\Delta v ^{\mathrm{S}}/c$']
+    label_list = [r'$\Delta v ^{\mathrm{M}}/c$',
+                  r'$\Delta v ^{\mathrm{S}}/c$', r'$\Delta v ^{\alpha}/c$']
     np.set_printoptions(precision=10)
     for (j, alpha) in enumerate(p2_range):
         plt.plot(eta, results_matrix[:, j],
@@ -126,7 +126,7 @@ for pidx, power in enumerate(power_list):
     td_fom = 2 * power * alpha1/(3e8 * (sail_mass + payload_mass)) * tf / 3e8
     td_fom[td_fom > 1] = np.nan
     plt.plot(eta, td_fom,
-             color=color_list[2], ls=ls_list[2], lw=2.2, label=r'$\Delta v ^{\mathrm{TD}}/c$')
+             color=color_list[3], ls=ls_list[3], lw=1.5, label=r'$\Delta v ^{\mathrm{TD}}/c$')
 
     plt.xlabel(r'$\eta$')
     plt.ylabel(r'$\Delta v / c$')
