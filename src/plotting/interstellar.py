@@ -43,8 +43,8 @@ for pidx, power in enumerate(power_list):
 
     # Adimensional section
     p1_range = q0 / xrel_range
-    p2_range = [alpha1, 0.0]
-    modes = ["delay", "no"]
+    p2_range = [alpha1, 0.0, 0.0]
+    modes = ["delay", "no", "delay"]
     
     tf_range = tf / trel_range
     l_diffraction_range = l_diffraction / xrel_range
@@ -116,7 +116,7 @@ for pidx, power in enumerate(power_list):
     # single line
     plt.figure(figsize=(3, 2.5))
     eta = payload_mass/sail_mass
-    label_list = [r'$\Delta v ^{\mathrm{M}}/c$',
+    label_list = [r'$\Delta v ^{\mathrm{M}}/c$',r'$\Delta v ^{\alpha}/c$',
                   r'$\Delta v ^{\mathrm{S}}/c$']
     np.set_printoptions(precision=10)
     for (j, alpha) in enumerate(p2_range):
