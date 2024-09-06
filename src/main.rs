@@ -104,6 +104,8 @@ fn main() {
               p = 1.0;
             }
           }
+        } else {
+          p = 1.0;
         }
         if q > l_diffraction {
           p *= (l_diffraction/q).powi(2);
@@ -119,7 +121,7 @@ fn main() {
         // Save to history
         history.push((t, q, q_prime, p));
         #[cfg(debug_assertions)] 
-        {
+        {<
           println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}", t, t-delta, q, p, q_prime, q_prime-status);
         }
         results.push((t, q, q_prime, p));
@@ -132,9 +134,13 @@ fn main() {
     // plot_results(&results).expect("Failed to plot results");
     output.push(&file);
     save_results_to_csv(output.as_path(), &results);
-    output.set_file_name("spectrum.csv");
-    println!("Final power spectrum: {:?}", power_spectrum[cnt-1]);
+    
+    if mode=="delay" 
+    {
+      output.set_file_name("spectrum.csv");
+      // println!("Final power spectrum: {:?}", power_spectrum[cnt-1]);
+      save_spectral_components_to_csv(output.as_path(), &mut power_spectrum);
+    }
     // let results_spectrum = (frequency_range, power_spectrum.clone());
-    save_spectral_components_to_csv(output.as_path(), &mut power_spectrum);
     println!("{}", q_prime);
 }

@@ -31,7 +31,7 @@ for pidx, power in enumerate(power_list):
     # print(np.mean(trel_range))
 
     alpha1 = 0.95
-    alpha2 = 0.5
+    alpha2 = 0.9
 
     # thermals
     epsilon = 1e5 * alpha1
@@ -113,8 +113,8 @@ for pidx, power in enumerate(power_list):
     # single line
     plt.figure(figsize=(3, 2.5))
     eta = payload_mass/sail_mass
-    label_list = [r'$\Delta v ^{\mathrm{R}}/c$',
-                  r'$\Delta v ^{\mathrm{NR}}/c$']
+    label_list = [r'$\Delta v ^{\mathrm{M}}/c$',
+                  r'$\Delta v ^{\mathrm{S}}/c$']
     np.set_printoptions(precision=10)
     for (j, alpha) in enumerate(p2_range):
         plt.plot(eta, results_matrix[:, j],

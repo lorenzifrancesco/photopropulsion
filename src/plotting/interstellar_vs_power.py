@@ -16,7 +16,7 @@ import pandas as pd
 # SI section
 sail_mass = 10e-3  # kg
 payload_mass = 0
-power = np.logspace(9, 11, 100, dtype=np.float64)
+power = np.logspace(8, 11, 100, dtype=np.float64)
 print(power)
 tf = 3600  # s
 trel_range = (payload_mass + sail_mass) * (3e8)**2 / power
@@ -31,7 +31,7 @@ l_diffraction = d_laser * d_sail / (2 * 1.22 * wavelength)
 # print(np.mean(trel_range))
 
 alpha1 = 0.95
-alpha2 = 0.5
+alpha2 = 0.9
 
 # thermals
 epsilon = 1e5 * alpha1
@@ -44,6 +44,7 @@ max_temp = ((1-alpha1) * power / (2 * epsilon * S * sigma_sb))**(1/4)
 # Adimensional section
 p1_range = q0 / xrel_range
 p2_range = [alpha1 * alpha2, 0.0]
+mode_range = ["delay", "no"]
 tf_range = tf / trel_range
 l_diffraction_range = l_diffraction / xrel_range
 # print(p1_range)
@@ -62,7 +63,7 @@ if not os.path.exists("results/delta_v.npy") or override:
     for (i, p1) in enumerate(p1_range):
         for (j, p2) in enumerate(p2_range):
             # print(i)
-            # print(j)
+            # print(j
             configurations[i][j] = {
                 "q": float(p1),
                 "q_prime": 0.0,
@@ -74,7 +75,7 @@ if not os.path.exists("results/delta_v.npy") or override:
                 "alphart": float(p2),
                 "l_diffraction": float(l_diffraction_range[i]),
                 "file": file,
-                "mode": mode,
+                "mode": str(mode_range[j]),
                 "output": output
             }
 
@@ -94,9 +95,7 @@ if not os.path.exists("results/delta_v.npy") or override:
             try:
                 result_float = np.double(last_line)
                 results_matrix[i, j] = result_float
-                if j == 1:
-                  print(lines[-2])
-                  print(i, result_float)
+                print(i, result_float)
 
             except ValueError as e:
                 print(f"Failed to convert the last line to float: {e}")
@@ -110,8 +109,8 @@ color_list = ['r', 'b', 'g', 'm', 'orange']
 ls_list = ['-', '--', ':', '-.', '-.']
 
 # single line
-plt.figure(figsize=(3, 2.5))
-label_list = [r'$\Delta v ^{\mathrm{R}}/c$', r'$\Delta v ^{\mathrm{NR}}/c$']
+plt.figure(figsize=(30, 20.5))
+label_list = [r'$\Delta v ^{\mathrm{M}}/c$', r'$\Delta v ^{\mathrm{S}}/c$']
 np.set_printoptions(precision=10)
 for (j, alpha) in enumerate(p2_range):
     plt.plot(power, results_matrix[:, j],
