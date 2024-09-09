@@ -10,22 +10,6 @@ alpha2 = 0.9
 alpha1 = []
 file_list = ["delay03.csv", "delay"]
 
-configurations[i][j] = {
-    "q": float(p1),
-    "q_prime": 0.0,
-    "p": 1.0,
-    "delta": 0.0,
-    "t": 0.0,
-    # very high value to allow the termination due to stationary state detection.
-    "tf": float(tf_range[i]),
-    "alpha1": float(p2),
-    "alpha2": float(alpha2),
-    "l_diffraction": float(l_diffraction_range[i]),
-    "file": file,
-    "mode": str(mode_range[j]),
-    "output": output
-}
-            
 print("Plotting from: ", results_file)
 df = pd.read_csv(results_file)
 
