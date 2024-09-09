@@ -4,16 +4,16 @@ import numpy as np
 import toml
 import subprocess
 
-p1_list = [0.0, 0.3, 0.6, 0.9]
+p1_list = [1e-12, 0.3, 0.6, 0.9]
 
 mode = "delay"
 output = "results/"
 file = ["power0.csv", "power3.csv", "power6.csv", "power9.csv"]
 configurations = []
-tf = 0.7
+tf = 0.1
 for i, p1 in enumerate(p1_list):
   configurations.append({
-      "q": 0.1,
+      "q": 5e-3,
       "q_prime": 0.0,
       "p": 1.0,
       "delta": 0.0,
@@ -34,7 +34,8 @@ for conf in configurations:
   with open("input/config.toml", "w") as running_config_file:
       print(f"Running the script for ", conf["file"])
       toml.dump(conf, running_config_file)
-  result = subprocess.run([rust_program], capture_output=True, text=True)
+  if True: # skip computation
+    result = subprocess.run([rust_program], capture_output=True, text=True)
 
 # Load the CSV file into a pandas DataFrame
 df_list = []
@@ -58,52 +59,38 @@ ls_list = ["--", ":", "-"]
 ls_list = ["--", ":", "-", "-", "-"]
 color_list = ["r", "g", "b", "y", "b"]
 
-# plt.figure(figsize=(3, 2.6))
-# for i in range(3):
-#   # Plotting q
-#   plt.plot(time, q[i], linestyle=ls_list[i], color=color_list[i], label=r'$q \ / c t_{\mathrm{rel}}$', linewidth=lw)
-#   plt.xlabel(r'$t/t_{\mathrm{rel}}$')
-#   plt.ylabel(r'$q \ / c  t_{\mathrm{rel}}$')
-#   plt.grid(grid)
-#   # plt.legend()
-#   plt.tight_layout()
-# plt.savefig('media/q_compare'+file_type)  # Save plot as PDF for LaTeX
+color_list = ['orange', 'b', 'g', 'r']
+ls_list = ['-', '--', ':', '-.']
+labels = [r"$\alpha=0$", r"$\alpha=0.3$", r"$\alpha=0.6$", r"$\alpha=0.9$"]
+color_list = color_list[::-1]
+P_list = P_list[::-1]
+ls_list = ls_list[::-1]
+labels = labels[::-1]
 
-# plt.figure(figsize=(3, 2.6))
-# for i in range(3):
-#   # Plotting Q
-#   plt.plot(time, Q[i], linestyle=ls_list[i], color=color_list[i], label=r'$Q$', linewidth=lw)
-#   plt.xlabel(r'$t/t_{\mathrm{rel}}$')
-#   plt.ylabel(r'$\dot{q}/c$')
-#   plt.grid(grid)
-#   # plt.legend()
-#   plt.tight_layout()
-# plt.savefig('media/qdot_compare'+file_type)  # Save plot as PDF for LaTeX
-
-
-color_list = ['r', 'b', 'g', 'm', 'orange']
-ls_list = ['-', '--', ':', '-.', '-.']
-labels = [r"$\alpha=0.3$", r"$\alpha=0.6$", r"$\alpha=0.9$", r"no delay", r"$\alpha=0$"]
 plt.figure(figsize=(3, 2.6))
-for i in range(5):
+max = 4
+for i in range(max):
   # Plotting P
-  plt.plot(time, P_list[i]/(1/(1-0.3*(i+1))), linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
+  plt.semilogy(time, P_list[i], linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
+  if i != 0:
+    plt.semilogy(time, 1/(1-(0.3*i)) * np.ones_like(P_list[i]), linestyle="-", color=color_list[::-1][i], linewidth=0.5)
   plt.xlabel(r'$t/t_{\mathrm{rel}}$')
-  plt.ylabel(r'$P/P_0$')
+  plt.ylabel(r'$\tilde{P}/P_0$')
   plt.grid(grid)
-  plt.legend()
-  plt.tight_layout()
+plt.legend(labelspacing=0.1)
+plt.tight_layout()
 plt.savefig('media/P_ratio_compare'+file_type)  # Save plot as PDF for LaTeX
 
 
-# labels = [r"$\alpha=0.3$", r"$\alpha=0.6$", r"$\alpha=0.9$", r"no delay", r"$\alpha=0$"]
-# plt.figure(figsize=(3, 2.6))
-# for i in range(5):
-#   # Plotting P
-#   plt.plot(time, P1[i], linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
-#   plt.xlabel(r'$t/t_{\mathrm{rel}}$')
-#   plt.ylabel(r'$\tilde{P}/P_0$')
-#   plt.grid(grid)
-#   plt.legend()
-#   plt.tight_layout()
-# plt.savefig('media/P_ratio_compare'+file_type)  # Save plot as PDF for LaTeX
+Q_list = Q_list[::-1]
+plt.figure(figsize=(3, 2.6))
+max = 4
+for i in range(max):
+  # Plotting P
+  plt.plot(time, Q_list[i], linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
+  plt.xlabel(r'$t/t_{\mathrm{rel}}$')
+  plt.ylabel(r'$\dot{q}/c$')
+  plt.grid(grid)
+plt.legend(labelspacing=0.1, handletextpad=0.2)  # Adjust these values to control spacing
+plt.tight_layout()
+plt.savefig('media/qdot_compare'+file_type)  # Save plot as PDF for LaTeX

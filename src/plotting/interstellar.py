@@ -28,10 +28,11 @@ for pidx, power in enumerate(power_list):
     d_laser = 10e3
     wavelength = 1064e-9
     l_diffraction = d_laser * d_sail / (2 * 1.22 * wavelength)
-    # print(np.mean(trel_range))
-
-    alpha1 = 0.95
-    alpha2 = 0.9
+    print(np.mean(trel_range))
+    print(f"Diffraction length: {l_diffraction:.3e}")
+    # exit()
+    alpha1 = 0.97
+    alpha2 = 1
 
     # thermals
     epsilon = 1e5 * alpha1
@@ -44,7 +45,7 @@ for pidx, power in enumerate(power_list):
     # Adimensional section
     p1_range = q0 / xrel_range
     p2_range = [alpha1, 0.0, 0.0]
-    modes = ["delay", "no", "delay"]
+    modes = ["delay", "delay", "no"]
     
     tf_range = tf / trel_range
     l_diffraction_range = l_diffraction / xrel_range
@@ -110,14 +111,14 @@ for pidx, power in enumerate(power_list):
 
     results_matrix = np.load("results/delta_v.npy")
     print("Plotting...")
-    color_list = ['r', 'b', 'g', 'm', 'orange']
-    ls_list = ['-', '--', ':', '-.', '-.']
+    color_list = ['r', 'g', 'b', 'm', 'orange']
+    ls_list = ['-', ':', '--', '-.', '-.']
 
     # single line
     plt.figure(figsize=(3, 2.5))
     eta = payload_mass/sail_mass
     label_list = [r'$\Delta v ^{\mathrm{M}}/c$',
-                  r'$\Delta v ^{\mathrm{S}}/c$', r'$\Delta v ^{\alpha}/c$']
+                  r'$\Delta v ^{\mathrm{Bragg}}/c$', r'$\Delta v^{\mathrm{S}}/c$']
     np.set_printoptions(precision=10)
     for (j, alpha) in enumerate(p2_range):
         plt.plot(eta, results_matrix[:, j],
@@ -126,7 +127,7 @@ for pidx, power in enumerate(power_list):
     td_fom = 2 * power * alpha1/(3e8 * (sail_mass + payload_mass)) * tf / 3e8
     td_fom[td_fom > 1] = np.nan
     plt.plot(eta, td_fom,
-             color=color_list[3], ls=ls_list[3], lw=1.5, label=r'$\Delta v ^{\mathrm{TD}}/c$')
+             color=color_list[3], ls=ls_list[3], lw=1.5, label=r'$\Delta v ^{\mathrm{NR}}/c$')
 
     plt.xlabel(r'$\eta$')
     plt.ylabel(r'$\Delta v / c$')
@@ -134,6 +135,6 @@ for pidx, power in enumerate(power_list):
     xtick_positions = np.linspace(eta.min(), eta.max(), num_xticks)
     xtick_labels = [fr"${pos:.0f}$" for pos in xtick_positions]
     plt.xticks(xtick_positions, xtick_labels)
-    plt.legend()
+    plt.legend(labelspacing=0.1)
     plt.tight_layout()
     plt.savefig("media/delta_v_"+str(pidx)+".pdf")

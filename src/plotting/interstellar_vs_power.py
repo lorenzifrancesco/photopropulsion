@@ -16,12 +16,13 @@ import pandas as pd
 # SI section
 sail_mass = 10e-3  # kg
 payload_mass = 0
-power = np.logspace(8, 11, 100, dtype=np.float64)
+power = np.logspace(8, 10, 100, dtype=np.float64)
 print(power)
 tf = 3600  # s
 trel_range = (payload_mass + sail_mass) * (3e8)**2 / power
 xrel_range = trel_range * 3e8
 q0 = 800e3  # LEO
+# q0 = 3500e3  # GEO
 sigma = 1e-3  # kg/m^2
 S = sail_mass / sigma
 d_sail = np.sqrt(S/np.pi) * 2
@@ -30,8 +31,8 @@ wavelength = 1064e-9
 l_diffraction = d_laser * d_sail / (2 * 1.22 * wavelength)
 # print(np.mean(trel_range))
 
-alpha1 = 0.95
-alpha2 = 0.9
+alpha1 = 0.97
+alpha2 = 1.0
 
 # thermals
 epsilon = 1e5 * alpha1
@@ -43,8 +44,8 @@ max_temp = ((1-alpha1) * power / (2 * epsilon * S * sigma_sb))**(1/4)
 
 # Adimensional section
 p1_range = q0 / xrel_range
-p2_range = [alpha1, 0.0]
-mode_range = ["delay", "no"]
+p2_range = [alpha1, 0.0, 0.0]
+mode_range = ["delay", "delay", "no"]
 tf_range = tf / trel_range
 l_diffraction_range = l_diffraction / xrel_range
 # print(p1_range)
@@ -106,12 +107,12 @@ if not os.path.exists("results/delta_v.npy") or override:
 
 results_matrix = np.load("results/delta_v.npy")
 print("Plotting...")
-color_list = ['r', 'b', 'g', 'm', 'orange']
-ls_list = ['-', '--', ':', '-.', '-.']
-
+color_list = ['r', 'g', 'b', 'm', 'orange']
+ls_list = ['-', ':', '--', '-.', '-.']
 # single line
 plt.figure(figsize=(3, 2.5))
-label_list = [r'$\Delta v ^{\mathrm{M}}/c$', r'$\Delta v ^{\mathrm{S}}/c$']
+label_list = [r'$\Delta v ^{\mathrm{M}}/c$',
+              r'$\Delta v ^{\mathrm{Bragg}}/c$', r'$\Delta v^{\mathrm{S}}/c$']
 np.set_printoptions(precision=10)
 for (j, alpha) in enumerate(p2_range):
     plt.plot(power, results_matrix[:, j],
@@ -121,7 +122,7 @@ td_fom = 2 * power * alpha1/(3e8 * (sail_mass + payload_mass)) * tf / 3e8 * np.o
 td_fom[td_fom > 0.3] = np.nan
 print(td_fom)
 plt.plot(power, td_fom,
-        color=color_list[2], ls=ls_list[2], lw=2.2, label=r'$\Delta v ^{\mathrm{TD}}/c$')
+        color="m", ls="-.", lw=1.5, label=r'$\Delta v ^{\mathrm{TD}}/c$')
 
 
 plt.xlabel(r'$P$ [GW]')
@@ -130,6 +131,6 @@ num_xticks = 5  # Number of xticks you want
 xtick_positions = np.linspace(power.min(), power.max(), num_xticks)
 xtick_labels = [fr"${pos/1e9:3.0f}$" for pos in xtick_positions]
 plt.xticks(xtick_positions, xtick_labels)
-plt.legend()
+# plt.legend(labelspacing=0.1)
 plt.tight_layout()
 plt.savefig("media/delta_v_pow.pdf")
