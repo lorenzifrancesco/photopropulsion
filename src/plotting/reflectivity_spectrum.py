@@ -19,9 +19,9 @@ def plot_reflectivity_splines_accurate():
     reflectivity_BN = spline_BN(wavelength)
     
     # Plotting the curves
-    plt.figure(figsize=(3, 2.5))
-    plt.plot(wavelength, reflectivity_SiN, color='red', label='SiN')
-    plt.plot(wavelength, reflectivity_BN, color='blue', label='BN')
+    plt.figure(figsize=(2, 1.5))
+    plt.plot(wavelength, reflectivity_SiN, color='red', label=r'\mathrm{Si}_3\mathrm{N}_4')
+    # plt.plot(wavelength, reflectivity_BN, color='blue', label='BN')
     
     # Labeling the axes
     plt.xlabel('Wavelength (µm)')

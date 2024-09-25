@@ -10,10 +10,10 @@ mode = "delay"
 output = "results/"
 file = ["power0.csv", "power3.csv", "power6.csv", "power9.csv"]
 configurations = []
-tf = 0.1
+tf = 3e-2
 for i, p1 in enumerate(p1_list):
   configurations.append({
-      "q": 5e-3,
+      "q": 3e-7,
       "q_prime": 0.0,
       "p": 1.0,
       "delta": 0.0,
@@ -36,7 +36,7 @@ for conf in configurations:
       toml.dump(conf, running_config_file)
   if True: # skip computation
     result = subprocess.run([rust_program], capture_output=True, text=True)
-
+    print("done")
 # Load the CSV file into a pandas DataFrame
 df_list = []
 P_list = []
@@ -71,9 +71,9 @@ plt.figure(figsize=(3, 2.6))
 max = 4
 for i in range(max):
   # Plotting P
-  plt.semilogy(time, P_list[i], linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
+  plt.plot(time, P_list[i], linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
   if i != 0:
-    plt.semilogy(time, 1/(1-(0.3*i)) * np.ones_like(P_list[i]), linestyle="-", color=color_list[::-1][i], linewidth=0.5)
+    plt.plot(time, 1/(1-(0.3*i)) * np.ones_like(P_list[i]), linestyle="-", color=color_list[::-1][i], linewidth=0.5)
   plt.xlabel(r'$t/t_{\mathrm{rel}}$')
   plt.ylabel(r'$\tilde{P}/P_0$')
   plt.grid(grid)

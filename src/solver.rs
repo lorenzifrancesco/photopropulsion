@@ -46,7 +46,7 @@ pub fn get_spectral_components(power_spectrum: &Vec<Vec<(f64, f64)>>, history: &
   } else {
     let q_prime_old = interpolate(history, t-delta, 3);
     let doppler = (1.0 - q_prime_old)/(1.0 + q_prime_old);
-    println!("{}", doppler);
+    // println!("{}", doppler);
     let idx = ((t-delta)/HT).floor() as usize;
     let reflected_spectrum: Vec<(f64, f64)>;
     if !(idx >=power_spectrum.len()) {

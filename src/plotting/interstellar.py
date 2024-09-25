@@ -57,7 +57,7 @@ for pidx, power in enumerate(power_list):
     file = "auto.csv"
     output = "results/"
     override = 1
-
+    exit()
     if not os.path.exists("results/delta_v.npy") or override:
         print("Computing...")
         configurations = [[{} for _ in p2_range] for _ in p1_range]

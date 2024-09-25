@@ -5,3 +5,5 @@
 /input
 .vscode
 .vscode
+*.inp
+*.pro

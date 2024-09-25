@@ -85,20 +85,6 @@ fn main() {
             delta = get_delta(&history, t);
             if !p_past.is_nan() {
               // multiply here by the D factor and by the diffraction renormalization factor.
-              // let doppler = (1.0 - q_prime)/(1.0 + q_prime); // wrong: we need the old velocity!!
-
-              // let spectrum_past = get_spectrum_past(&power_spectrum, &history, t);
-              // let mut reflected_spectrum  = vec![0.0; n_frequencies];
-              // // println!("Doppler: {}", doppler);
-              // for i in 0..n_frequencies {
-              //   reflected_spectrum[((i as f64) * doppler).round() as usize] += alphart * doppler * spectrum_past[i];
-              // }
-              // let sum_vector: Vec<f64> = laser_power.clone().iter().zip(reflected_spectrum.iter()).map(|(a, b)| *a + *b).collect();
-              // power_spectrum[cnt] = sum_vector;
-              // // println!("{:?}", power_spectrum[cnt]);
-              // power_spectrum.push(vec![0.0; n_frequencies]); 
-              // // println!("{:?}", frequency_range);
-              // // println!("{:?}", power_spectrum);
               power_spectrum.append(&mut vec![get_spectral_components(&power_spectrum, &history, t, &alpha1_fun, alpha2)]);
               p = 0.0;
               for line in power_spectrum[cnt].clone() {
@@ -128,7 +114,7 @@ fn main() {
         history.push((t, q, q_prime, p));
         #[cfg(debug_assertions)] 
         {
-          println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}", t, t-delta, q, p, q_prime, q_prime-status);
+          // println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}", t, t-delta, q, p, q_prime, q_prime-status);
         }
         results.push((t, q, q_prime, p));
     }
@@ -148,5 +134,5 @@ fn main() {
       save_spectral_components_to_csv(output.as_path(), &mut power_spectrum);
     }
     // let results_spectrum = (frequency_range, power_spectrum.clone());
-    println!("{}", q_prime);
+    // println!("{}", q_prime);
 }

@@ -43,7 +43,7 @@ if __name__ == "__main__":
     names = ["braggSiN", "braggBN", "gmrSiN", "gmrBN"]
     labels = [r"Bragg SiN", r"Bragg BN", r"GMR SiN", r"GMR BN"] 
     names = ["braggSiN", "gmrSiN"]
-    labels = [r"Bragg", r"GMR"]
+    labels = [r"$\mathrm{Si}_3\mathrm{N}_4$", r"GMR"]
     config = toml.load('input/si_units.toml')
     P = config['P']
     m = config['m']
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     f_0 = lambda2nu(1064e-9)
     f_0 = 283.2e12
     cnt = 0
-    plt.figure(figsize=(3, 2.5))
+    plt.figure(figsize=(2, 1.5))
     for i, n in enumerate(names):
       points = load_points_from_csv(dir, n)
       # plot_points(points, n, labels[i])
