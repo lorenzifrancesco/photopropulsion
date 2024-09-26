@@ -9,19 +9,27 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import pandas as pd
-
+from simulation import Launch
+ 
 # convert in "list 1"
 power_list = np.array([1.0, 10.0]) * 1e9  # W
 
+with open('input/params.toml', 'r') as file:
+  config = toml.load(file)
+print("================== physical parameters ")
+for key, value in config.items():
+  globals()[key] = value 
+  print(key, globals()[key])
+print("======================= end parameters ")
 
 for pidx, power in enumerate(power_list):
-    # SI section
-    sail_mass = 10e-3  # kg
+    # SI sectiofor key, value in config.items():
+    sail_mass = config['sail_mass']
+    tf = config['launch']['tf']
+    q0 = config['q0']
     payload_mass = sail_mass * np.linspace(0, 10, 100, dtype=np.float64)
-    tf = 3600  # s
     trel_range = (payload_mass + sail_mass) * (3e8)**2 / power
     xrel_range = trel_range * 3e8
-    q0 = 800e3  # LEO
     sigma = 1e-3  # kg/m^2
     S = sail_mass / sigma
     d_sail = np.sqrt(S/np.pi) * 2
