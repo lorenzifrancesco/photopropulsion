@@ -61,7 +61,7 @@ def plot_data(x_labels, y1_values, y2_values, name):
     plt.grid(False)
     plt.legend()
     plt.tight_layout()
-    plt.savefig("media/"+str(name)+".pdf")
+    plt.savefig("media/reflectivity/"+str(name)+".pdf")
     
     if name != "absorp":
       plt.figure(figsize=(2, 1.8))
@@ -76,7 +76,7 @@ def plot_data(x_labels, y1_values, y2_values, name):
       plt.grid(False)
       plt.legend()
       plt.tight_layout()
-      plt.savefig("media/"+str(name)+"_zoom.pdf")
+      plt.savefig("media/reflectivity/"+str(name)+"_zoom.pdf")
 
 # Main execution
 # file_path_mio = 'input/Si_Vacuum_SiO2.txt'

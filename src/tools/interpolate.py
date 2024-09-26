@@ -4,11 +4,13 @@ from scipy.constants import lambda2nu, c
 import toml
 import numpy as np
 
+
 def save_coefficients_to_csv(coefficients, filename):
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['x', 'y'])  
+        writer.writerow(['x', 'y'])
         writer.writerows(coefficients)
+
 
 def load_points_from_csv(dir, name):
     points = []
@@ -20,13 +22,27 @@ def load_points_from_csv(dir, name):
             y = float(row[1])
             points.append((x, y))
     for i in range(len(points)):
-      points[i] = (lambda2nu(points[i][0]*1e-6), points[i][1])
+        points[i] = (lambda2nu(points[i][0]*1e-6), points[i][1])
     return points
-  
+
+
+def load_points_from_txt(dir, name):
+    points = []
+    with open(dir+name+".txt", 'r') as file:
+        for line in file:
+            if not line.startswith(";"):  # Skip lines that start with ";"
+                parts = line.split()
+                # First column for x-axis
+                points.append(
+                    (lambda2nu(float(parts[0].strip()) * 1e-6), float(parts[1].strip())))
+    return points
+
+
 def rescale_points(points, t_rel):
-  for i in range(len(points)):
-    points[i] = (t_rel * points[i][0], points[i][1])
-  return points
+    for i in range(len(points)):
+        points[i] = (t_rel * points[i][0], points[i][1])
+    return points
+
 
 def plot_points(dir, name, label):
     plt.figure(figsize=(4, 3))
@@ -38,32 +54,35 @@ def plot_points(dir, name, label):
     # plt.show()
     plt.savefig("media/reflectivity/"+name+".pdf")
 
+
 if __name__ == "__main__":
     dir = "input/reflectivity/"
-    names = ["braggSiN", "braggBN", "gmrSiN", "gmrBN"]
-    labels = [r"Bragg SiN", r"Bragg BN", r"GMR SiN", r"GMR BN"] 
-    names = ["braggSiN", "gmrSiN"]
-    labels = [r"$\mathrm{Si}_3\mathrm{N}_4$", r"GMR"]
+    file_path_mio = 'input/M1.txt'
+    file_path_tung = 'input/M2.txt'
+    names = ["Si_Vacuum_ZnTe", "Si3N4_Vacuum"]
+    labels = [r"M1", r"M2"]
     config = toml.load('input/si_units.toml')
     P = config['P']
     m = config['m']
     t_rel = m*c**2/P
     f_0 = lambda2nu(1064e-9)
-    f_0 = 283.2e12
+    # f_0 = 283.2e12
     cnt = 0
-    plt.figure(figsize=(2, 1.5))
+    plt.figure(figsize=(6, 4))
     for i, n in enumerate(names):
-      points = load_points_from_csv(dir, n)
-      # plot_points(points, n, labels[i])
-      print(names[i])
-      points = rescale_points(points, 1/f_0)
-      save_coefficients_to_csv(points, "input/reflectivity/"+ n +"_f.csv")
-      cnt += 1
-      print([p[0] for p in points])
-      plt.plot(np.array([p[0] for p in points]), [p[1] for p in points], label=labels[i])
+        points = load_points_from_txt(dir, n)
+        # plot_points(points, n, labels[i])
+        print(names[i])
+        points = rescale_points(points, 1/f_0)
+        save_coefficients_to_csv(points, "input/reflectivity/" + n + "_f.csv")
+        cnt += 1
+        # print([p[0] for p in points])
+        plt.plot(np.array([p[0] for p in points]), [p[1]
+                 for p in points], label=labels[i])
 
     plt.xlabel(r"$\omega/\omega_0$")
     plt.ylabel(r"$\alpha_1(\omega)$")
     plt.legend()
     plt.tight_layout()
     plt.savefig("media/reflectivity/spectral_comparison.pdf")
+    
