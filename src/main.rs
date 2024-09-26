@@ -134,5 +134,5 @@ fn main() {
       save_spectral_components_to_csv(output.as_path(), &mut power_spectrum);
     }
     // let results_spectrum = (frequency_range, power_spectrum.clone());
-    // println!("{}", q_prime);
+    println!("{}", q_prime);
 }

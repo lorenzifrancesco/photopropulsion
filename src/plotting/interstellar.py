@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import pandas as pd
-from simulation import Launch
+# from simulation import Launch
  
 # convert in "list 1"
 power_list = np.array([1.0, 10.0]) * 1e9  # W
@@ -24,9 +24,9 @@ print("======================= end parameters ")
 
 for pidx, power in enumerate(power_list):
     # SI sectiofor key, value in config.items():
-    sail_mass = config['sail_mass']
-    tf = config['launch']['tf']
-    q0 = config['q0']
+    sail_mass = 1e-3
+    tf = 3640
+    q0 = 0.05
     payload_mass = sail_mass * np.linspace(0, 10, 100, dtype=np.float64)
     trel_range = (payload_mass + sail_mass) * (3e8)**2 / power
     xrel_range = trel_range * 3e8
@@ -65,7 +65,7 @@ for pidx, power in enumerate(power_list):
     file = "auto.csv"
     output = "results/"
     override = 1
-    exit()
+    # exit()
     if not os.path.exists("results/delta_v.npy") or override:
         print("Computing...")
         configurations = [[{} for _ in p2_range] for _ in p1_range]

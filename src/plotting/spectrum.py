@@ -45,5 +45,4 @@ def plot_heatmap_from_csv(csv_file_path, output_image_path):
 if __name__ == "__main__":
     csv_file_path = 'results/spectrum.csv'
     output_image_path = 'media/spectrum.pdf'
-
     plot_heatmap_from_csv(csv_file_path, output_image_path)
