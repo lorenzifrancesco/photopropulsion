@@ -64,8 +64,13 @@ fn main() {
     //   laser_power[n_frequencies-1-i] = 1.0 * (-(i as f64).powi(2)/1.0).exp()
     // }
     let alpha1_fun;
-    alpha1_fun = linear_interpolator(&("input/reflectivity/".to_string() + & multilayer + "_f.csv")).expect("c");
-    print!("{}", & multilayer);
+    if alpha1 == 0.0 {
+      alpha1_fun = linear_interpolator(&("input/reflectivity/".to_string() + & multilayer + "_f.csv")).expect("c");
+      print!("{}", & multilayer);    
+    } else {
+      alpha1_fun = constant_interpolator(alpha1).expect("c");
+    }
+
     let alphart = alpha1*alpha2;
 
     let mode = &config.mode;    
@@ -95,8 +100,6 @@ fn main() {
               p = 1.0;
             }
           }
-        } else {
-          p = 1.0;
         }
         if q > l_diffraction {
           p *= (l_diffraction/q).powi(2);

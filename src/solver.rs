@@ -1,6 +1,6 @@
 use log::{warn, debug};
 
-pub const HT: f64 = 0.00001; // Time step
+pub const HT: f64 = 0.000001; // Time step
 
 pub fn h_dydt(y: (f64, f64), p: f64, ht: f64) -> (f64, f64) {
   (ht *y.1, 
