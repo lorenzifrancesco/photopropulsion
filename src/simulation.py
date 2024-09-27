@@ -251,7 +251,7 @@ class Launch:
             'results/spectrum.csv')
         times, speeds, total_powers = self.read_speed_from_csv(
             'results/delay.csv')
-        skip = 1
+        skip = 20
         speeds = speeds[2::skip]
         times = times[2::skip]
         frequencies = frequencies[::skip, :]
@@ -274,7 +274,7 @@ class Launch:
 
         time_axis = time_steps/len(time_steps)*tf
 
-        fig, ax = plt.subplots(figsize=(4, 3))
+        fig, ax = plt.subplots(figsize=(3.2, 2.6))
         norm = Normalize(0.0, 1.0)
         cmap = get_cmap('coolwarm')
         adj_cmap = adjust_luminosity_contrast(cmap, 0.6, 2.5)
@@ -298,8 +298,8 @@ class Launch:
         plt.axhspan(freq_with_power_above_half, 1.0, xmin=0,
                     xmax=1, color='green', alpha=0.2)
         # plt.axhline(np.nanmin(frequencies))
-        for j in range(tot_frequencies):
-            print(np.nanmin(frequencies[:, j]))
+        # for j in range(tot_frequencies):
+        #     print(np.nanmin(frequencies[:, j]))
         plt.gca().ticklabel_format(style='sci', axis='both', scilimits=(3, 0))
         plt.xlabel(r'$t/t_\mathrm{rel}$')
         plt.ylim((0.0, 1.0))

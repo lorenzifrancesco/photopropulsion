@@ -66,7 +66,7 @@ if __name__ == "__main__":
     f_0 = lambda2nu(1064e-9)
     # f_0 = 283.2e12
     cnt = 0
-    plt.figure(figsize=(6, 4))
+    plt.figure(figsize=(3, 2.6))
     for i, n in enumerate(names):
         points = load_points_from_txt(dir, n)
         # plot_points(points, n, labels[i])
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         plt.plot(np.array([p[0] for p in points]), [p[1]
                  for p in points], label=labels[i])
     max_alpha1 = np.max([i[1] for i in points])
-    flat_coefficients = [(i[0], max_alpha1) for i in points]
+    flat_coefficients = [(i[0], 1.0) for i in points]
     print("FLAT")
     save_coefficients_to_csv(flat_coefficients, "input/reflectivity/FLAT.csv")
 
