@@ -66,7 +66,7 @@ class Launch:
         return (1 + self.eta) * self.sail_mass
 
     def get_t_rel(self):
-        return self.sail_mass * c**2 / self.p_0
+        return self.sail_mass * (1+self.eta) * c**2 / self.p_0
 
     def get_l_rel(self):
         return self.get_t_rel() * c
@@ -95,15 +95,15 @@ class Launch:
         print("Wrinting config...")
 
         config = {
-            "q":             self.q_0/self.get_l_rel(),
+            "q":             float(self.q_0/self.get_l_rel()),
             "q_prime":       0.0,
             "p":             1.0,
             "delta":         0.0,
             "t":             0.0,
-            "tf":            self.t_f/self.get_t_rel(),
+            "tf":            float(self.t_f/self.get_t_rel()),
             "multilayer":    self.multilayer.name,
-            "alpha1":        self.alpha1,
-            "alpha2":        self.alpha2,
+            "alpha1":        float(self.alpha1),
+            "alpha2":        float(self.alpha2),
             "l_diffraction": float(self.get_l_d()),
             "file":          self.file,
             "mode":          self.mode,
@@ -119,9 +119,18 @@ class Launch:
         if realtime:
             result = subprocess.run(
                 [self.rust], text=True, stdout=subprocess.PIPE, capture_output=True)
+            result_float = -1
         else:
             result = subprocess.run(
                 [self.rust], capture_output=True, text=True)
+            output = result.stdout.strip()
+            lines = output.splitlines()
+            last_line = lines[-1].strip()
+            try:
+                result_float = np.double(last_line)
+            except:
+              print("\033[91Failed to read final velocity\033[0m")
+              pass
         print(result.stdout)
         colored_text = result.stderr
         if "panicked" in colored_text:
@@ -130,6 +139,8 @@ class Launch:
         print(colored_text)
         print("_" * 30)
         print("Done.")
+        return result_float
+
 
     def show(self):
         # Table headers and layout

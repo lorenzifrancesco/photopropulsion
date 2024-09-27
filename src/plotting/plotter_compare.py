@@ -54,8 +54,6 @@ file_type = '.pdf'
 grid = False
 lw = 1.0
 ls_list = ["--", ":", "-"]
-# color_list = ["r", "g", "b"]
-# names_list = [r"", r"", r""]
 ls_list = ["--", ":", "-", "-", "-"]
 color_list = ["r", "g", "b", "y", "b"]
 
@@ -80,7 +78,6 @@ for i in range(max):
 plt.legend(labelspacing=0.1)
 plt.tight_layout()
 plt.savefig('media/P_ratio_compare'+file_type)  # Save plot as PDF for LaTeX
-
 
 Q_list = Q_list[::-1]
 plt.figure(figsize=(3, 2.6))
