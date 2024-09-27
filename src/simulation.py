@@ -10,8 +10,15 @@ import csv
 import matplotlib.colors as mcolors
 from matplotlib.cm import get_cmap
 from matplotlib.collections import LineCollection
-from matplotlib.colors import Normalize
+from matplotlib.colors import Normalize, ListedColormap
 
+def adjust_luminosity_contrast(cmap, lum_factor, contrast_factor):
+    colors = cmap(np.arange(cmap.N))
+    colors = np.clip(colors * lum_factor, 0, 1)
+    midpoint = 0.5
+    colors = (colors - midpoint) * contrast_factor + midpoint
+    colors = np.clip(colors, 0, 1)
+    return ListedColormap(colors)
 
 class Reflector(Enum):
     M1 = 1
@@ -100,7 +107,6 @@ class Launch:
             "mode":          self.mode,
             "output":        self.output_folder
         }
-        print(config)
         with open(file, "w") as config_file:
             toml.dump(config, config_file)
         print("Done.")
@@ -161,6 +167,7 @@ class Launch:
         print(f"{'l_rel':<{header_width}}{self.get_l_rel():2e}")
         print("_" * (header_width + value_width))
         print(f"{'l_d':<{header_width}}{self.get_l_d():2e}")
+        print(f"{'q_0':<{header_width}}{self.q_0/self.get_l_rel():2e}")
         print(f"{'t_f':<{header_width}}{self.t_f/self.get_t_rel():.2e}")
         print("=" * (header_width + value_width))
 
@@ -234,7 +241,8 @@ class Launch:
                 row_count += 1
         return np.array(frequencies), np.array(powers)
 
-    def plot_spectrum(self):
+    def plot_spectrum(self, threshold=0.0):
+        print("Plotting spectrum...")
         frequencies, powers = self.read_spectral_components_from_csv(
             'results/spectrum.csv')
         times, speeds, total_powers = self.read_speed_from_csv(
@@ -248,8 +256,8 @@ class Launch:
         sqrt_d = np.sqrt((1-speeds)/(1+speeds))
         tot_frequencies = frequencies.shape[1]
         for j in range(tot_frequencies):
-          frequencies[:, j] = np.where(powers[:, j]*sqrt_d < 1e-6, np.nan, frequencies[:, j])
-        # frequencies = np.where(frequencies < 1e-3, np.nan, frequencies)
+            frequencies[:, j] = np.where(powers[:, j]*sqrt_d < threshold, np.nan, frequencies[:, j])
+        frequencies = np.where(frequencies == 0, np.nan, frequencies)
         time_steps = np.arange(powers.shape[0])
 
         config_path = 'input/config.toml'
@@ -260,12 +268,13 @@ class Launch:
 
         fig, ax = plt.subplots(figsize=(4, 3))
         norm = Normalize(powers.min(), powers.max())
-        print(powers.min())
+        cmap = get_cmap('coolwarm')
+        adj_cmap = adjust_luminosity_contrast(cmap, 0.6, 2.5)
         for j in range(tot_frequencies):
             points = np.array([time_axis, frequencies[:, j]
                               * sqrt_d]).T.reshape(-1, 1, 2)
             segments = np.concatenate([points[:-1], points[1:]], axis=1)
-            lc = LineCollection(segments, cmap='coolwarm', norm=norm)
+            lc = LineCollection(segments, cmap=adj_cmap, norm=norm)
             lc.set_array(powers[:, j]*sqrt_d)
             lc.set_linewidth(1.5)
             ax.add_collection(lc)
@@ -273,10 +282,16 @@ class Launch:
         ax.set_xlim(time_axis.min(), time_axis.max())
         cb = plt.colorbar(lc, ax=ax)
         cb.set_label(r"$\tilde{P}_i'/P_0$")
+        threshold = 0.25
+        freq_with_power_above_half = np.min(frequencies[-1, powers[-1, :] >= threshold])
+        print(freq_with_power_above_half)
+        plt.axhspan(freq_with_power_above_half, 1.0, xmin=0, xmax=1, color='green', alpha=0.2)
         plt.gca().ticklabel_format(style='sci', axis='both', scilimits=(3, 0))
         plt.xlabel(r'$t/t_\mathrm{rel}$')
+        plt.ylim((0.0, 1.0))
         plt.ylabel(r'$\omega_i^\prime/\omega_0$')
         # plt.legend(loc='best')
         # plt.grid(True)
         plt.tight_layout()
         plt.savefig("media/spectrum_lines.pdf")
+        print("Done.")

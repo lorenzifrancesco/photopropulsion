@@ -16,7 +16,7 @@ def continuously_update_screen():
                 l.write_config('input/config.toml')
                 l.update()
                 l.plot_dynamics()
-                l.plot_spectrum()
+                l.plot_spectrum(threshold=0.001)
             time.sleep(0.1)
 
     except KeyboardInterrupt:
