@@ -9,6 +9,8 @@ from enum import Enum
 import csv
 import matplotlib.colors as mcolors
 from matplotlib.cm import get_cmap
+
+
 class Reflector(Enum):
     M1 = 1
     M2 = 2
@@ -101,16 +103,21 @@ class Launch:
             toml.dump(config, config_file)
         # print("Done.")
 
-    def run(self, realtime=True):
+    def run(self, realtime=False):
         print("Running...")
         print("_" * 30)
         if realtime:
             result = subprocess.run(
-                [self.rust], text=True, stdout=subprocess.PIPE)
+                [self.rust], text=True, stdout=subprocess.PIPE, capture_output=True)
         else:
             result = subprocess.run(
                 [self.rust], capture_output=True, text=True)
         print(result.stdout)
+        colored_text = result.stderr
+        if "panicked" in colored_text:
+            colored_text = colored_text.replace(
+                "panicked", "\033[91mpanicked\033[0m")
+        print(colored_text)
         print("_" * 30)
         print("Done.")
 
@@ -174,7 +181,7 @@ class Launch:
         plt.ylabel(r'$q$')
         plt.grid(grid)
         if self.get_l_d() < np.max(q):
-          plt.axhline(self.get_l_d(), ls="--", color="r", lw=1)
+            plt.axhline(self.get_l_d(), ls="--", color="r", lw=1)
         # plt.legend()
         plt.tight_layout()
         plt.savefig('media/q'+file_type)  # Save plot as PDF for LaTeX
@@ -204,30 +211,32 @@ class Launch:
 
     def read_speed_from_csv(self, file_path):
         df = pd.read_csv(file_path)
-        times =  np.array(df['Time'])
+        times = np.array(df['Time'])
         speeds = np.array(df['Q'])
         total_powers = np.array(df['P'])
         return times, speeds, total_powers
-    
+
     def read_spectral_components_from_csv(self, file_path):
-      frequencies = []
-      powers = []
-      
-      with open(file_path, newline='') as csvfile:
-          reader = csv.reader(csvfile)
-          header = next(reader)
-          row_count = 0
-          for row in reader:
-              if row_count % 2 == 0:  # Frequencies (even index)
-                  frequencies.append(list(map(float, row)))
-              else:  # Powers (odd index)
-                  powers.append(list(map(float, row)))
-              row_count += 1
-      return np.array(frequencies), np.array(powers)
-    
+        frequencies = []
+        powers = []
+
+        with open(file_path, newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            header = next(reader)
+            row_count = 0
+            for row in reader:
+                if row_count % 2 == 0:  # Frequencies (even index)
+                    frequencies.append(list(map(float, row)))
+                else:  # Powers (odd index)
+                    powers.append(list(map(float, row)))
+                row_count += 1
+        return np.array(frequencies), np.array(powers)
+
     def plot_spectrum(self):
-        frequencies, powers = self.read_spectral_components_from_csv('results/spectrum.csv')
-        times, speeds, total_powers = self.read_speed_from_csv('results/delay.csv')
+        frequencies, powers = self.read_spectral_components_from_csv(
+            'results/spectrum.csv')
+        times, speeds, total_powers = self.read_speed_from_csv(
+            'results/delay.csv')
         speeds = speeds[2:]
         times = times[2:]
         total_powers = total_powers[2:]
@@ -240,16 +249,18 @@ class Launch:
         config_path = 'input/config.toml'
         config = toml.load(config_path)
         tf = config['tf']
-        
-        lw=1.5
-        norm = mcolors.Normalize(vmin=np.min(frequencies), vmax=np.max(frequencies))
+
+        lw = 1.5
+        norm = mcolors.Normalize(vmin=np.min(
+            frequencies), vmax=np.max(frequencies))
         tot_frequencies = frequencies.shape[1]
         plt.figure(figsize=(3, 2.5))
         viridis = get_cmap('viridis', tot_frequencies)
         max_power = np.max(powers)
         for j in range(tot_frequencies):
-          plt.plot(time_steps/len(time_steps)*tf, frequencies[:, j] * sqrt_d, lw=lw)
-        
+            plt.plot(time_steps/len(time_steps)*tf,
+                     frequencies[:, j] * sqrt_d, lw=lw)
+
         # sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         # sm.set_array([])
         # plt.colorbar(sm, label='Frequency')
@@ -260,4 +271,3 @@ class Launch:
         # plt.grid(True)
         plt.tight_layout()
         plt.savefig("media/spectrum_lines.pdf")
-  
