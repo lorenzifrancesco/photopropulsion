@@ -12,6 +12,7 @@ from matplotlib.cm import get_cmap
 from matplotlib.collections import LineCollection
 from matplotlib.colors import Normalize, ListedColormap
 
+
 def adjust_luminosity_contrast(cmap, lum_factor, contrast_factor):
     colors = cmap(np.arange(cmap.N))
     colors = np.clip(colors * lum_factor, 0, 1)
@@ -19,6 +20,7 @@ def adjust_luminosity_contrast(cmap, lum_factor, contrast_factor):
     colors = (colors - midpoint) * contrast_factor + midpoint
     colors = np.clip(colors, 0, 1)
     return ListedColormap(colors)
+
 
 class Reflector(Enum):
     M1 = 1
@@ -165,7 +167,8 @@ class Launch:
         print("=" * (header_width + value_width))
         print(f"{'t_rel [s]':<{header_width}}{self.get_t_rel():.2e}")
         print(f"{'l_rel [m]':<{header_width}}{self.get_l_rel():2e}")
-        print(f"{'l_rel [AU]':<{header_width}}{self.get_l_rel()/1.495979e+11:2e}")
+        print(
+            f"{'l_rel [AU]':<{header_width}}{self.get_l_rel()/1.495979e+11:2e}")
         print("_" * (header_width + value_width))
         print(f"{'l_d':<{header_width}}{self.get_l_d():2e}")
         print(f"{'q_0':<{header_width}}{self.q_0/self.get_l_rel():2e}")
@@ -248,17 +251,21 @@ class Launch:
             'results/spectrum.csv')
         times, speeds, total_powers = self.read_speed_from_csv(
             'results/delay.csv')
-        skip = 2
+        skip = 1
         speeds = speeds[2::skip]
         times = times[2::skip]
-        frequencies = frequencies[::skip]
-        powers = powers[::skip]
+        frequencies = frequencies[::skip, :]
+        powers = powers[::skip, :]
         total_powers = total_powers[2::skip]
         sqrt_d = np.sqrt((1-speeds)/(1+speeds))
         tot_frequencies = frequencies.shape[1]
         for j in range(tot_frequencies):
-            frequencies[:, j] = np.where(powers[:, j]*sqrt_d < threshold, np.nan, frequencies[:, j])
+            frequencies[:, j] = frequencies[:, j]*sqrt_d
+            powers[:, j] = powers[:, j]*sqrt_d
+            frequencies[:, j] = np.where(
+                powers[:, j] < threshold, np.nan, frequencies[:, j])
         frequencies = np.where(frequencies == 0, np.nan, frequencies)
+        frequencies = np.where(powers <= threshold, np.nan, frequencies)
         time_steps = np.arange(powers.shape[0])
 
         config_path = 'input/config.toml'
@@ -268,25 +275,31 @@ class Launch:
         time_axis = time_steps/len(time_steps)*tf
 
         fig, ax = plt.subplots(figsize=(4, 3))
-        norm = Normalize(powers.min(), powers.max())
+        norm = Normalize(0.0, 1.0)
         cmap = get_cmap('coolwarm')
         adj_cmap = adjust_luminosity_contrast(cmap, 0.6, 2.5)
+        print(frequencies.shape)
         for j in range(tot_frequencies):
-            points = np.array([time_axis, frequencies[:, j]
-                              * sqrt_d]).T.reshape(-1, 1, 2)
+            points = np.array([time_axis, frequencies[:, j]]).T.reshape(-1, 1, 2)
             segments = np.concatenate([points[:-1], points[1:]], axis=1)
             lc = LineCollection(segments, cmap=adj_cmap, norm=norm)
-            lc.set_array(powers[:, j]*sqrt_d)
+            lc.set_array(powers[:, j])
             lc.set_linewidth(1.5)
             ax.add_collection(lc)
         # ax.autoscale()
         ax.set_xlim(time_axis.min(), time_axis.max())
         cb = plt.colorbar(lc, ax=ax)
         cb.set_label(r"$\tilde{P}_i'/P_0$")
-        threshold = 0.25
-        freq_with_power_above_half = np.min(frequencies[-1, powers[-1, :] >= threshold])
+        green_threshold = 0.5
+        freq_with_power_above_half = np.nanmin(
+            frequencies[powers >= green_threshold])
+        # freq_with_power_above_half = np.min(frequencies[-1, powers[-1, :] >= threshold])
         print(freq_with_power_above_half)
-        plt.axhspan(freq_with_power_above_half, 1.0, xmin=0, xmax=1, color='green', alpha=0.2)
+        plt.axhspan(freq_with_power_above_half, 1.0, xmin=0,
+                    xmax=1, color='green', alpha=0.2)
+        # plt.axhline(np.nanmin(frequencies))
+        for j in range(tot_frequencies):
+            print(np.nanmin(frequencies[:, j]))
         plt.gca().ticklabel_format(style='sci', axis='both', scilimits=(3, 0))
         plt.xlabel(r'$t/t_\mathrm{rel}$')
         plt.ylim((0.0, 1.0))
