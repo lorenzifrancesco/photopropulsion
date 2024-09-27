@@ -2,7 +2,6 @@ import simulation
 import os
 import time
 
-
 def continuously_update_screen():
     try:
         last_mtime = 0
