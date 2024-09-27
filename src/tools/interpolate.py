@@ -57,9 +57,7 @@ def plot_points(dir, name, label):
 
 if __name__ == "__main__":
     dir = "input/reflectivity/"
-    file_path_mio = 'input/M1.txt'
-    file_path_tung = 'input/M2.txt'
-    names = ["Si_Vacuum_ZnTe", "Si3N4_Vacuum"]
+    names = ["M1", "M2"]
     labels = [r"M1", r"M2"]
     config = toml.load('input/si_units.toml')
     P = config['P']
@@ -79,10 +77,13 @@ if __name__ == "__main__":
         # print([p[0] for p in points])
         plt.plot(np.array([p[0] for p in points]), [p[1]
                  for p in points], label=labels[i])
+    max_alpha1 = np.max([i[1] for i in points])
+    flat_coefficients = [(i[0], max_alpha1) for i in points]
+    print("FLAT")
+    save_coefficients_to_csv(flat_coefficients, "input/reflectivity/FLAT.csv")
 
     plt.xlabel(r"$\omega/\omega_0$")
     plt.ylabel(r"$\alpha_1(\omega)$")
     plt.legend()
     plt.tight_layout()
     plt.savefig("media/reflectivity/spectral_comparison.pdf")
-    

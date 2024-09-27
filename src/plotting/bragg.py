@@ -80,8 +80,8 @@ def plot_data(x_labels, y1_values, y2_values, name):
 
 # Main execution
 # file_path_mio = 'input/Si_Vacuum_SiO2.txt'
-file_path_mio = 'input/Si_Vacuum_ZnTe.txt'
-file_path_tung = 'input/Si3N4_Vacuum.txt'
+file_path_mio = 'input/M1.txt'
+file_path_tung = 'input/M2.txt'
 x_labels, y1_values_mio, y2_values_mio = read_data(file_path_mio)
 x_labels, y1_values_tung, y2_values_tung = read_data(file_path_tung)
 plot_data(x_labels, y1_values_mio, y1_values_tung, name="reflec")

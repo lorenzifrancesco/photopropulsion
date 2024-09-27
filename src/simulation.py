@@ -77,17 +77,18 @@ class Launch:
 
     def write_config(self, file):
         print("Wrinting config...")
+        
         config = {
             "q":             self.q_0/self.get_l_rel(),
             "q_prime":       0.0,
             "p":             1.0,
             "delta":         0.0,
             "t":             0.0,
-            "tf":            self.get_t_rel(),
-            "multilayer":    self.multilayer,
+            "tf":            self.t_f/self.get_t_rel(),
+            "multilayer":    self.multilayer.name,
             "alpha1":        self.alpha1,
             "alpha2":        self.alpha2,
-            "l_diffraction": self.get_l_d(),
+            "l_diffraction": float(self.get_l_d()),
             "file":          self.file,
             "mode":          self.mode,
             "output":        self.output_folder
@@ -97,10 +98,13 @@ class Launch:
             toml.dump(config, config_file)
         print("Done.")
 
-    def run(self):
+    def run(self, realtime=True):
         print("Running...")
         print("_" * 30)
-        result = subprocess.run([self.rust], capture_output=True, text=True)
+        if realtime:
+          result = subprocess.run([self.rust], text=True, stdout=subprocess.PIPE)
+        else:
+          result = subprocess.run([self.rust], capture_output=True, text=True)
         print(result.stdout)
         print("_" * 30)
         print("Done.")
@@ -141,6 +145,7 @@ class Launch:
         print(f"{'t_rel':<{header_width}}{self.get_t_rel():.2e}")
         print(f"{'l_rel':<{header_width}}{self.get_l_rel():2e}")
         print(f"{'l_d':<{header_width}}{self.get_l_d():2e}")
+        print(f"{'t_f':<{header_width}}{self.t_f/self.get_t_rel():.2e}")
         print("=" * (header_width + value_width))
 
     def plot_dynamics(self):
@@ -186,10 +191,3 @@ class Launch:
         plt.tight_layout()
         plt.savefig('media/P'+file_type)  # Save plot as PDF for LaTeX
         print("Done.")
-
-
-l = Launch()
-l.show()
-l.write_config('input/config.toml')
-l.update()
-l.plot_dynamics()

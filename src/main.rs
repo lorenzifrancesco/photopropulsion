@@ -26,6 +26,7 @@ struct Config {
     tf: f64,
     alpha1: f64, // set to 0.0 to enable the reading of the spectrum
     alpha2: f64,
+    multilayer: String,
     l_diffraction: f64
 }
 
@@ -46,10 +47,11 @@ fn main() {
     let mut t = config.t;
     let mut cnt = 0;
     let tf = config.tf;
+    let multilayer = config.multilayer;
     let alpha1 = config.alpha1;
     let alpha2 = config.alpha2;
     let l_diffraction = config.l_diffraction;
-    let threshold = 2e-7; // empirically determined
+    let threshold = 0.0; // empirically determined
     let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
@@ -63,7 +65,8 @@ fn main() {
     // }
     let alpha1_fun;
     if alpha1 == 0.0 {
-      alpha1_fun = linear_interpolator("input/reflectivity/braggSiN.csv").expect("c");
+      alpha1_fun = linear_interpolator(&("input/reflectivity/".to_string() + & multilayer + ".csv")).expect("c");
+      print!("{}", & multilayer);
     } else {
       alpha1_fun = constant_interpolator(alpha1).expect("c");
     }
@@ -114,7 +117,7 @@ fn main() {
         history.push((t, q, q_prime, p));
         #[cfg(debug_assertions)] 
         {
-          // println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}", t, t-delta, q, p, q_prime, q_prime-status);
+          println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}", t, t-delta, q, p, q_prime, q_prime-status);
         }
         results.push((t, q, q_prime, p));
     }
