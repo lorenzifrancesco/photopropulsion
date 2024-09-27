@@ -9,6 +9,8 @@ from enum import Enum
 import csv
 import matplotlib.colors as mcolors
 from matplotlib.cm import get_cmap
+from matplotlib.collections import LineCollection
+from matplotlib.colors import Normalize
 
 
 class Reflector(Enum):
@@ -75,13 +77,13 @@ class Launch:
 
     def compile(self):
         rust_compile = 'cargo build --release'
-        # print("Compiling...")
+        print("Compiling...")
         result = subprocess.run(rust_compile, shell=True,
                                 capture_output=True, text=True)
-        # print("Done.")
+        print("Done.")
 
     def write_config(self, file):
-        # print("Wrinting config...")
+        print("Wrinting config...")
 
         config = {
             "q":             self.q_0/self.get_l_rel(),
@@ -98,10 +100,10 @@ class Launch:
             "mode":          self.mode,
             "output":        self.output_folder
         }
-        # print(config)
+        print(config)
         with open(file, "w") as config_file:
             toml.dump(config, config_file)
-        # print("Done.")
+        print("Done.")
 
     def run(self, realtime=False):
         print("Running...")
@@ -237,33 +239,40 @@ class Launch:
             'results/spectrum.csv')
         times, speeds, total_powers = self.read_speed_from_csv(
             'results/delay.csv')
-        speeds = speeds[2:]
-        times = times[2:]
-        total_powers = total_powers[2:]
+        skip = 2
+        speeds = speeds[2::skip]
+        times = times[2::skip]
+        frequencies = frequencies[::skip]
+        powers = powers[::skip]
+        total_powers = total_powers[2::skip]
         sqrt_d = np.sqrt((1-speeds)/(1+speeds))
-        print(frequencies.shape, sqrt_d.shape)
-        powers = np.where(powers == 0, np.nan, powers)
-        frequencies = np.where(frequencies == 0, np.nan, frequencies)
+        tot_frequencies = frequencies.shape[1]
+        for j in range(tot_frequencies):
+          frequencies[:, j] = np.where(powers[:, j]*sqrt_d < 1e-6, np.nan, frequencies[:, j])
+        # frequencies = np.where(frequencies < 1e-3, np.nan, frequencies)
         time_steps = np.arange(powers.shape[0])
 
         config_path = 'input/config.toml'
         config = toml.load(config_path)
         tf = config['tf']
 
-        lw = 1.5
-        norm = mcolors.Normalize(vmin=np.min(
-            frequencies), vmax=np.max(frequencies))
-        tot_frequencies = frequencies.shape[1]
-        plt.figure(figsize=(3, 2.5))
-        viridis = get_cmap('viridis', tot_frequencies)
-        max_power = np.max(powers)
-        for j in range(tot_frequencies):
-            plt.plot(time_steps/len(time_steps)*tf,
-                     frequencies[:, j] * sqrt_d, lw=lw)
+        time_axis = time_steps/len(time_steps)*tf
 
-        # sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-        # sm.set_array([])
-        # plt.colorbar(sm, label='Frequency')
+        fig, ax = plt.subplots(figsize=(4, 3))
+        norm = Normalize(powers.min(), powers.max())
+        print(powers.min())
+        for j in range(tot_frequencies):
+            points = np.array([time_axis, frequencies[:, j]
+                              * sqrt_d]).T.reshape(-1, 1, 2)
+            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+            lc = LineCollection(segments, cmap='coolwarm', norm=norm)
+            lc.set_array(powers[:, j]*sqrt_d)
+            lc.set_linewidth(1.5)
+            ax.add_collection(lc)
+        # ax.autoscale()
+        ax.set_xlim(time_axis.min(), time_axis.max())
+        cb = plt.colorbar(lc, ax=ax)
+        cb.set_label(r"$\tilde{P}_i'/P_0$")
         plt.gca().ticklabel_format(style='sci', axis='both', scilimits=(3, 0))
         plt.xlabel(r'$t/t_\mathrm{rel}$')
         plt.ylabel(r'$\omega_i^\prime/\omega_0$')

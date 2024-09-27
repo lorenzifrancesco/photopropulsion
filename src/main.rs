@@ -91,7 +91,7 @@ fn main() {
               }
               cnt += 1;
             } else {
-              println!("p_past is NaN");
+              println!("\np_past is NaN");
               p = 1.0;
             }
           }
