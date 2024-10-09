@@ -74,6 +74,7 @@ pub fn get_spectral_components(
             let l_d = diffraction_constant * line.0; 
             if q_old > l_d {
               diff_factor = (l_d/q_old).powi(2);
+              println!("{}", diff_factor);
             } else {
               diff_factor = 1.0;
             }

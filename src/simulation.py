@@ -75,8 +75,8 @@ class Launch:
         return self.d_sail*self.d_laser/(2*self.alpha*c)*lambda2nu(self.lambda_0)
 
     def get_d_c(self):
-        return self.get_diffraction_constant() / self.get_l_rel() * self.get_t_rel()
-
+        return self.get_diffraction_constant() / self.get_l_rel()
+      
     def get_l_d(self):
         return self.get_d_c()  # fundamental frequency is equal to one
 
