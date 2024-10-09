@@ -58,7 +58,6 @@ pub fn get_spectral_components(
         let q_old = interpolate(history, t - delta, 1);
         let doppler = (1.0 - q_prime_old) / (1.0 + q_prime_old);
         let sqrt_doppler = doppler.sqrt();
-        // println!("{}", doppler);
         let idx = ((t - delta) / HT).floor() as usize;
         let reflected_spectrum: Vec<(f64, f64)>;
         if !(idx >= power_spectrum.len()) {
@@ -73,8 +72,7 @@ pub fn get_spectral_components(
         for line in reflected_spectrum {
             let l_d = diffraction_constant * line.0; 
             if q_old > l_d {
-              diff_factor = (l_d/q_old).powi(2);
-              println!("{}", diff_factor);
+              diff_factor = (l_d/q_old).powi(4);
             } else {
               diff_factor = 1.0;
             }
@@ -82,7 +80,6 @@ pub fn get_spectral_components(
                 (line.0 * doppler),
                 (diff_factor * line.1 * doppler * (alpha1(line.0 * sqrt_doppler) * alpha2(line.0))),
             )]);
-            // new_power_spectrum.append((1.1, 1.2));
         }
         new_power_spectrum.append(&mut vec![(1.0, 1.0)]);
         new_power_spectrum
@@ -106,12 +103,6 @@ pub fn get_spectrum_past<'a>(
 pub fn get_delta(history: &Vec<(f64, f64, f64, f64)>, _t: f64) -> f64 {
     let q = history.last().unwrap().1;
     let q_prime = history.last().unwrap().2;
-    // old approach using the first iteration of the numerical approximation of (deltina)
-    // warn!("wrong value of speed");
-    // let q_past = interpolate(history, t - 2.0*q, 1);
-    // println!("delta_eval_point {:3.2e}", t-2.0*q);
-    // debug!("{:3.2e}", 3.0*q - q_past);
-    // 4.0 * q.powi(2) / (3.0*q - q_past)
     2.0 * q / (1.0 + q_prime)
 }
 

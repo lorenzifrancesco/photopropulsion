@@ -61,7 +61,11 @@ fn main() {
     let alpha2_fun;
     if alpha1 == 0.0 {
       alpha1_fun = linear_interpolator(&("input/reflectivity/".to_string() + & multilayer + "_f.csv")).expect("c");
-      alpha2_fun = linear_interpolator(&("input/reflectivity/G1_f.csv")).expect("c");
+      if multilayer == "FLAT" {
+        alpha2_fun = linear_interpolator(&("input/reflectivity/FLAT_f.csv")).expect("c");
+      } else {
+        alpha2_fun = linear_interpolator(&("input/reflectivity/G1_f.csv")).expect("c");
+      }
       print!("{}", & multilayer);    
     } else {
       alpha1_fun = constant_interpolator(alpha1).expect("c");
@@ -73,6 +77,7 @@ fn main() {
     let mode = &config.mode;    
     let file = &config.file;
     let mut output: PathBuf = PathBuf::from(&config.output);
+    let mut diff_factor: f64;
 
     if mode == "lubin" {
       p /= 1.0 - alphart;
@@ -94,7 +99,13 @@ fn main() {
                 &alpha2_fun)]);
               p = 0.0;
               for line in power_spectrum[cnt].clone() {
-                p += line.1;
+                let l_d = diffraction_constant * line.0; 
+                if q > l_d {
+                  diff_factor = (l_d/q).powi(2);
+                } else {
+                  diff_factor = 1.0;
+                }
+                p += line.1 * diff_factor;
               }
               cnt += 1;
             } else {
