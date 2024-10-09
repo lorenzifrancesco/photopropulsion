@@ -1,7 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
 import toml
-from scipy.constants import Boltzmann, c, h
 import subprocess
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,6 +10,7 @@ import matplotlib.colors as mcolors
 from matplotlib.cm import get_cmap
 from matplotlib.collections import LineCollection
 from matplotlib.colors import Normalize, ListedColormap
+from scipy.constants import lambda2nu, Boltzmann, c, h
 
 
 def adjust_luminosity_contrast(cmap, lum_factor, contrast_factor):
@@ -70,12 +70,15 @@ class Launch:
 
     def get_l_rel(self):
         return self.get_t_rel() * c
+      
+    def get_diffraction_constant(self):
+        return self.d_sail*self.d_laser/(2*self.alpha*c)*lambda2nu(self.lambda_0)
 
-    def get_l_diffraction(self):
-        return self.d_sail*self.d_laser/(2*self.alpha * self.lambda_0)
+    def get_d_c(self):
+        return self.get_diffraction_constant() / self.get_l_rel() * self.get_t_rel()
 
     def get_l_d(self):
-        return self.get_l_diffraction() / self.get_l_rel()
+        return self.get_d_c()  # fundamental frequency is equal to one
 
     def get_tf(self):
         return self.t_f/self.get_t_rel()
@@ -104,7 +107,7 @@ class Launch:
             "multilayer":    self.multilayer.name,
             "alpha1":        float(self.alpha1),
             "alpha2":        float(self.alpha2),
-            "l_diffraction": float(self.get_l_d()),
+            "diffraction_constant": float(self.get_d_c()),
             "file":          self.file,
             "mode":          self.mode,
             "output":        self.output_folder
@@ -129,8 +132,8 @@ class Launch:
             try:
                 result_float = np.double(last_line)
             except:
-              print("\033[91Failed to read final velocity\033[0m")
-              pass
+                print("\033[91Failed to read final velocity\033[0m")
+                pass
         print(result.stdout)
         colored_text = result.stderr
         if "panicked" in colored_text:
@@ -140,7 +143,6 @@ class Launch:
         print("_" * 30)
         print("Done.")
         return result_float
-
 
     def show(self):
         # Table headers and layout
@@ -162,7 +164,8 @@ class Launch:
         print(f"{'Sail Diameter':<{header_width}}{self.d_sail:.2e}")
         print(f"{'Laser Diameter':<{header_width}}{self.d_laser:.2e}")
         print(f"{'Laser Wavelength (lambda_0)':<{header_width}}{self.lambda_0:.2e}")
-        print(f"{'Diffraction Lenght':<{header_width}}{self.get_l_diffraction():.2e}")
+        print(
+            f"{'Diffraction Constant':<{header_width}}{self.get_diffraction_constant():.2e}")
 
         print("\n" + "=" * (header_width + value_width))
         print(f"{'Simulation Settings':<{header_width-15}}{'Value':>{value_width}}")
@@ -181,7 +184,7 @@ class Launch:
         print(
             f"{'l_rel [AU]':<{header_width}}{self.get_l_rel()/1.495979e+11:2e}")
         print("_" * (header_width + value_width))
-        print(f"{'l_d':<{header_width}}{self.get_l_d():2e}")
+        print(f"{'d_c':<{header_width}}{self.get_d_c():2e}")
         print(f"{'q_0':<{header_width}}{self.q_0/self.get_l_rel():2e}")
         print(f"{'t_f':<{header_width}}{self.t_f/self.get_t_rel():.2e}")
         print("=" * (header_width + value_width))
@@ -204,8 +207,9 @@ class Launch:
         plt.xlabel(r'$t/t_{\mathrm{rel}}$')
         plt.ylabel(r'$q$')
         plt.grid(grid)
-        if self.get_l_d() < np.max(q):
-            plt.axhline(self.get_l_d(), ls="--", color="r", lw=1)
+        l_d = self.get_l_d()
+        if l_d < np.max(q):
+            plt.axhline(l_d, ls="--", color="r", lw=1)
         # plt.legend()
         plt.tight_layout()
         plt.savefig('media/q'+file_type)  # Save plot as PDF for LaTeX
@@ -291,7 +295,8 @@ class Launch:
         adj_cmap = adjust_luminosity_contrast(cmap, 0.6, 2.5)
         print(frequencies.shape)
         for j in range(tot_frequencies):
-            points = np.array([time_axis, frequencies[:, j]]).T.reshape(-1, 1, 2)
+            points = np.array([time_axis, frequencies[:, j]]
+                              ).T.reshape(-1, 1, 2)
             segments = np.concatenate([points[:-1], points[1:]], axis=1)
             lc = LineCollection(segments, cmap=adj_cmap, norm=norm)
             lc.set_array(powers[:, j])

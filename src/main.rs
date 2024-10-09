@@ -27,7 +27,7 @@ struct Config {
     alpha1: f64, // set to 0.0 to enable the reading of the spectrum
     alpha2: f64,
     multilayer: String,
-    l_diffraction: f64
+    diffraction_constant: f64
 }
 
 fn load_config() -> Config {
@@ -50,25 +50,22 @@ fn main() {
     let multilayer = config.multilayer;
     let alpha1 = config.alpha1;
     let alpha2 = config.alpha2;
-    let l_diffraction = config.l_diffraction;
+    let diffraction_constant = config.diffraction_constant;
     let threshold = 0.0; // empirically determined
     let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
-    // let n_frequencies = 200;
-    // let frequency_range: Vec<f64> = (0..n_frequencies).map(|x| x as f64 /(n_frequencies as f64)).collect();
     let mut power_spectrum: Vec<Vec<(f64, f64)>> = vec![vec![(1.0, 1.0)]];
-    // let mut laser_power: Vec<f64> = vec![0.0; n_frequencies];
-    // // laser_power[n_frequencies-1] = 1.0;
-    // for i in 0..n_frequencies {
-    //   laser_power[n_frequencies-1-i] = 1.0 * (-(i as f64).powi(2)/1.0).exp()
-    // }
+    
     let alpha1_fun;
+    let alpha2_fun;
     if alpha1 == 0.0 {
       alpha1_fun = linear_interpolator(&("input/reflectivity/".to_string() + & multilayer + "_f.csv")).expect("c");
+      alpha2_fun = linear_interpolator(&("input/reflectivity/G1_f.csv")).expect("c");
       print!("{}", & multilayer);    
     } else {
       alpha1_fun = constant_interpolator(alpha1).expect("c");
+      alpha2_fun = constant_interpolator(alpha2).expect("c");
     }
 
     let alphart = alpha1*alpha2;
@@ -89,7 +86,12 @@ fn main() {
             delta = get_delta(&history, t);
             if !p_past.is_nan() {
               // multiply here by the D factor and by the diffraction renormalization factor.
-              power_spectrum.append(&mut vec![get_spectral_components(&power_spectrum, &history, t, &alpha1_fun, alpha2)]);
+              power_spectrum.append(&mut vec![get_spectral_components(&power_spectrum, 
+                &history, 
+                t, 
+                diffraction_constant,
+                &alpha1_fun, 
+                &alpha2_fun)]);
               p = 0.0;
               for line in power_spectrum[cnt].clone() {
                 p += line.1;
@@ -100,9 +102,6 @@ fn main() {
               p = 1.0;
             }
           }
-        }
-        if q > l_diffraction {
-          p *= (l_diffraction/q).powi(2);
         }
         
         status = q_prime;
