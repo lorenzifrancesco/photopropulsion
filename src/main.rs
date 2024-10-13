@@ -60,11 +60,12 @@ fn main() {
     let alpha1_fun;
     let alpha2_fun;
     if alpha1 == 0.0 {
-      alpha1_fun = linear_interpolator(&("input/reflectivity/".to_string() + & multilayer + "_f.csv")).expect("c");
+      alpha1_fun = linear_interpolator(&("input/reflectivity/freq/".to_string() + & multilayer + "_f.csv")).expect("c");
       if multilayer == "FLAT" {
-        alpha2_fun = linear_interpolator(&("input/reflectivity/FLAT_f.csv")).expect("c");
+        alpha2_fun = linear_interpolator(&("input/reflectivity/freq/FLAT_f.csv")).expect("c");
       } else {
-        alpha2_fun = linear_interpolator(&("input/reflectivity/G1_f.csv")).expect("c");
+        // alpha2_fun = constant_interpolator(alpha2).expect("c");
+        alpha2_fun = linear_interpolator(&("input/reflectivity/freq/DE_f.csv")).expect("c");
       }
       print!("{}", & multilayer);    
     } else {
