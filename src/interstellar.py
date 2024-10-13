@@ -14,7 +14,6 @@ import simulation
 from simulation import Reflector
 from tqdm import tqdm
 
-override = 1
 mode_range = [("delay", Reflector.FLAT),
               ("delay", Reflector.M1),
               ("delay", Reflector.M2),
@@ -40,15 +39,15 @@ label_list = [r'${\mathrm{F}}$',
               r'${\mathrm{M3}}$',
               r'${\mathrm{S}}$']
 n_simulations = len(label_list)
-
 alpha1 = 1.0
 file = "auto.csv"
 output = "results/"
 
 todo = ["eta", "pow"]
 
-## ETA sectoin ========================
+## ETA section ========================
 if "eta" in todo:
+  override = 0
   eta_range = np.linspace(0, 2, 50, dtype=np.float64)
   l = simulation.Launch()
   l.p_0 = 50.0e9
@@ -89,10 +88,7 @@ if "eta" in todo:
 
   plt.xlabel(r'$\eta$')
   plt.ylabel(r'$\Delta v / c$')
-  num_xticks = 5  # Number of xticks you want
-  # xtick_positions = np.linspace(eta_range.min(), eta_range.max(), num_xticks)
-  # xtick_labels = [fr"${pos:.0f}$" for pos in xtick_positions]
-  # plt.xticks(xtick_positions, xtick_labels)
+  num_xticks = 5
   plt.legend(labelspacing=0.1)
   plt.tight_layout()
   plt.savefig("media/delta_v_p.pdf")
@@ -100,6 +96,7 @@ if "eta" in todo:
 
 ## POWER section =====================
 if "pow" in todo:
+  override = 1
   power_range = np.linspace(0, 100, 30, dtype=np.float64) * 1e9
   l = simulation.Launch()
   l.eta = 0.0
