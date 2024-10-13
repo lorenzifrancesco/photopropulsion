@@ -17,13 +17,13 @@ override = 0
 
 power_list = np.array([100.0]) * 1e9
 
-with open('input/params.toml', 'r') as file:
-    config = toml.load(file)
-print("================== physical parameters ")
-for key, value in config.items():
-    globals()[key] = value
-    print(key, globals()[key])
-print("======================= end parameters ")
+# with open('input/params.toml', 'r') as file:
+#     config = toml.load(file)
+# print("================== physical parameters ")
+# for key, value in config.items():
+#     globals()[key] = value
+#     print(key, globals()[key])
+# print("======================= end parameters ")
 
 for pidx, power in enumerate(power_list):
     l = simulation.Launch()
@@ -35,6 +35,7 @@ for pidx, power in enumerate(power_list):
     mode_range = [("delay", Reflector.FLAT),
                   ("delay", Reflector.M1),
                   ("delay", Reflector.M2),
+                  ("delay", Reflector.M3),
                   ("lubin", Reflector.FLAT),
                   ]
 
@@ -61,14 +62,15 @@ for pidx, power in enumerate(power_list):
 
     results_matrix = np.load("results/delta_v.npy")
     print("Plotting...")
-    color_list = ['r', 'g', 'b', 'm', 'c']
-    ls_list = ['-', ':', '--', '-.', '--']
+    color_list = ['r', 'g', 'b', 'm', 'c', 'orange']
+    ls_list = ['-', ':', '--', '-.', '--', '--']
 
     # single line
     plt.figure(figsize=(3, 2.5))
     label_list = [r'${\mathrm{F}}$',
                   r'${\mathrm{M1}}$',
                   r'${\mathrm{M2}}$',
+                  r'${\mathrm{M3}}$',
                   r'${\mathrm{S}}$']
     np.set_printoptions(precision=10)
     for (j, alpha) in enumerate(mode_range):

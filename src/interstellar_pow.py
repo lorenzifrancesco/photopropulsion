@@ -12,29 +12,30 @@ import pandas as pd
 from scipy.constants import c
 import simulation
 from simulation import Reflector
+from tqdm import tqdm
 
 override = 1
-
 eta_list = np.array([0.0])
 
-with open('input/params.toml', 'r') as file:
-    config = toml.load(file)
-print("================== physical parameters ")
-for key, value in config.items():
-    globals()[key] = value
-    print(key, globals()[key])
-print("======================= end parameters ")
+# with open('input/params.toml', 'r') as file:
+#     config = toml.load(file)
+# print("================== physical parameters ")
+# for key, value in config.items():
+#     globals()[key] = value
+#     print(key, globals()[key])
+# print("======================= end parameters ")
 
 for eidx, eta in enumerate(eta_list):
     l = simulation.Launch()
     l.eta = eta
-    power_range = np.linspace(0, 200, 100, dtype=np.float64) * 1e9
+    power_range = np.linspace(0, 100, 30, dtype=np.float64) * 1e9
 
     # Adimensional section
     alpha1 = 0.99
     mode_range = [("delay", Reflector.FLAT),
                   ("delay", Reflector.M1),
                   ("delay", Reflector.M2),
+                  ("delay", Reflector.M3),
                   ("lubin", Reflector.FLAT),
                   ]
 
@@ -47,7 +48,7 @@ for eidx, eta in enumerate(eta_list):
         results_matrix = np.zeros(
             (len(power_range), len(mode_range)), dtype=np.float64)
 
-        for (i, power) in enumerate(power_range):
+        for (i, power) in tqdm(enumerate(power_range)):
             for (j, mode) in enumerate(mode_range):
                 with open("input/config.toml", "w") as config_file:
                     l.p_0 = power
@@ -55,20 +56,20 @@ for eidx, eta in enumerate(eta_list):
                     l.multilayer = mode[1]
                     l.write_config('input/config.toml')
                     results_matrix[i, j] = l.run()
-
         print(np.shape(results_matrix))
         np.save("results/delta_v.npy", results_matrix)
 
     results_matrix = np.load("results/delta_v.npy")
     print("Plotting...")
-    color_list = ['r', 'g', 'b', 'm', 'c']
-    ls_list = ['-', ':', '--', '-.', '--']
+    color_list = ['r', 'g', 'b', 'm', 'c', 'orange']
+    ls_list = ['-', ':', '--', '-.', '--', '--']
 
     # single line
     plt.figure(figsize=(3, 2.5))
     label_list = [r'${\mathrm{F}}$',
                   r'${\mathrm{M1}}$',
                   r'${\mathrm{M2}}$',
+                  r'${\mathrm{M3}}$',
                   r'${\mathrm{S}}$']
     np.set_printoptions(precision=10)
     for (j, alpha) in enumerate(mode_range):
