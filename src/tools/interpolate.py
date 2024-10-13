@@ -125,7 +125,7 @@ def execute_code(file_path):
                     color=colors[i])
       max_alpha1 = np.max([i[1] for i in points])
       flat_coefficients = [(i[0], 1.0) for i in points]
-      save_coefficients_to_csv(flat_coefficients, "input/reflectivity/freq/FLAT.csv")
+      save_coefficients_to_csv(flat_coefficients, "input/reflectivity/freq/FLAT_f.csv")
 
 
       plt.axvspan(xmin=1.033, xmax=0.542, ymin=0,
