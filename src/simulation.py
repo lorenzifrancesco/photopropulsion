@@ -25,7 +25,8 @@ def adjust_luminosity_contrast(cmap, lum_factor, contrast_factor):
 class Reflector(Enum):
     M1 = 1
     M2 = 2
-    FLAT = 3
+    M3 = 3
+    FLAT = 4
 
 
 class Launch:
