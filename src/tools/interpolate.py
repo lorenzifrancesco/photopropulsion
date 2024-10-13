@@ -84,24 +84,14 @@ def rescale_points(points, t_rel):
     return points
 
 
-# def plot_points(dir, name, label):
-#     plt.figure(figsize=(4, 3))
-#     plt.plot([p[0]*1e-12 for p in points], [p[1] for p in points], label=label)
-#     plt.legend()
-#     plt.xlabel(r"$f$ [THz]")
-#     plt.ylabel(r"$\alpha$")
-#     plt.tight_layout()
-#     # plt.show()
-#     plt.savefig("media/reflectivity/"+name+".pdf")
-
-
 def execute_code(file_path):
     print(f"Executing code for {file_path}...")
     try:
       dir = '/home/lorenzi/sw/xop2.3/'
-      names = ["Si_SiO2", "Si_Vacuum", "Si3N4_Vacuum"]
-      labels = ["M0", "M1", "M2"]
-      ls = ["-", "--", "-."]
+      names = ["DE", "M1", "M2", "M3"]
+      labels = ["DE", "M1", "M2", "M3"]
+      ls = ["-", "--", "-.", ":"]
+      colors = ["b", "g", "r", "orange"]
       config = toml.load('input/si_units.toml')
       P = config['P']
       m = config['m']
@@ -112,31 +102,48 @@ def execute_code(file_path):
       plt.figure(figsize=(3, 2.6))
       for i, n in enumerate(names):
           points = load_points(dir, n, mode="txt")
-          print(names[i])
-          print(points)
+          # print(names[i])
+          # print(points)
           points = rescale_points(points, 1/f_0)
+          if n == "DE":
+            # need to multiply by the mirror to total 
+            # surface ratio
+            m2s = 0.9
+            for j, p in enumerate(points):
+              points[j] = (p[0], p[1]*m2s)
+
           save_coefficients_to_csv(points, "input/reflectivity/freq/" + n + "_f.csv")
           cnt += 1
           # print([p[0] for p in points])
-          plt.plot(np.array([p[0] for p in points]), 
-                  [p[1] for p in points],
-                  label=labels[i],
-                  ls=ls[i])
+          xaxis = np.array([p[0] for p in points])
+          if i>0:
+            plt.plot(xaxis, 
+                    [p[1] for p in points],
+                    label=labels[i],
+                    ls=ls[i], 
+                    lw =1.1, 
+                    color=colors[i])
       max_alpha1 = np.max([i[1] for i in points])
       flat_coefficients = [(i[0], 1.0) for i in points]
-      print("FLAT")
       save_coefficients_to_csv(flat_coefficients, "input/reflectivity/freq/FLAT.csv")
 
+
+      plt.axvspan(xmin=1.033, xmax=0.542, ymin=0,
+                    ymax=1, color='orange', alpha=0.2)
       plt.xlabel(r"$\omega/\omega_0$")
-      plt.xlim(0.2, 1.5)
+      plt.xlim(0.1, 1.4)
       plt.ylabel(r"$\alpha(\omega)$")
       plt.legend()
       plt.tight_layout()
       plt.savefig("media/reflectivity/spectral_comparison.pdf")
-    except:
+    except Exception as e: 
       print("Error happened in executing the update!")
+      print(e)
+      raise e
     
 if __name__ == "__main__":
+    execute_code('/home/lorenzi/sw/xop2.3/')
+    exit()
     event_handler = FileChangeHandler(execute_code)
     observer = Observer()
     observer.schedule(event_handler, path='/home/lorenzi/sw/xop2.3/', recursive=False)
