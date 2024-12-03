@@ -137,7 +137,7 @@ plt.plot(p2_range, results_matrix[0, :]*(1-p2_range),
           color=color_list[0], ls=ls_list[0], lw=1.5)
 
 plt.xlabel(r'$\alpha$')
-plt.ylabel(r'$\tilde{P}_\infty / \bar{P}$')
+plt.ylabel(r'$P_\infty / \bar{P}$')
 num_xticks = 5  # Number of xticks you want
 xtick_positions = np.linspace(p2_range.min(), p2_range.max(), num_xticks)
 xtick_labels = [fr"${pos:.2f}$" for pos in xtick_positions]
@@ -152,7 +152,7 @@ for i in range(len(p1_range)):
              color=color_list[i], ls=ls_list[i], lw=1.5, label=rf"$q_0={p1_range[i]:.3f}$")
 
 plt.xlabel(r'$\alpha$')
-plt.ylabel(r'$\tilde{P}_\infty / \bar{P}$')
+plt.ylabel(r'$P_\infty / \bar{P}$')
 plt.legend()
 num_xticks = 5  # Number of xticks you want
 xtick_positions = np.linspace(p2_range.min(), p2_range.max(), num_xticks)

@@ -9,11 +9,13 @@ compute = 1
 output = "results/"
 l = simulation.Launch()
 l.multilayer = simulation.Reflector.FLAT
-l.alpha2 = 0.8
+l.alpha2 = 1.0
 l.mode = "delay"
-l.p_0 = 100e9
+l.p_0 = 50e9
 l.t_f = 500
-l.q_0 = 35e8
+# 3e6 for short, 3e9 for long
+l.q_0 = 3e6
+l.d_sail = 100
 l.show()
 l.compile()
 
@@ -63,10 +65,10 @@ for i in range(max):
   plt.semilogy(time, P_list[i], linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
   plt.semilogy(time, 1/(1-(configurations[i]*l.alpha2)) * np.ones_like(P_list[i]), linestyle="-", color=color_list[:][i], linewidth=lw-0.5)
 plt.xlabel(r'$t/t_{\mathrm{rel}}$')
-plt.ylabel(r'$\tilde{P}/P_0$')
+plt.ylabel(r'$P/P_0$')
 plt.gca().ticklabel_format(style='sci', axis='x', scilimits=(3, 0))
 plt.grid(grid)
-# plt.legend(labelspacing=0.1)
+plt.legend(labelspacing=0.1)
 plt.tight_layout()
 plt.savefig('media/P_ratio_compare'+file_type)  # Save plot as PDF for LaTeX
 

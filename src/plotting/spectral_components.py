@@ -158,7 +158,7 @@ def plot_spectral_components(spectrum_path='results/spectrum.csv',
     # # plt.clf()
     # # plt.plot(times, total_powers)
     # # plt.xlabel(r"$t/t_{\mathrm{rel}}$")
-    # # plt.ylabel(r"$\tilde{P}(t)$")
+    # # plt.ylabel(r"$P(t)$")
     # # plt.savefig("media/geo_dynamics/total_powers.pdf")
 
 rust_compile = 'cargo build --release'

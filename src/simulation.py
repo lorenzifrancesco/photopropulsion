@@ -231,7 +231,7 @@ class Launch:
         plt.figure(figsize=(3, 2.5))
         plt.plot(time, P, linestyle='-', color='r', label=r'$P$', linewidth=lw)
         plt.xlabel(r'$t/t_{\mathrm{rel}}$')
-        plt.ylabel(r'$\tilde{P}/P_0$')
+        plt.ylabel(r'$P/P_0$')
         plt.grid(grid)
         # plt.legend()
         plt.tight_layout()
@@ -261,7 +261,7 @@ class Launch:
                 row_count += 1
         return np.array(frequencies), np.array(powers)
 
-    def plot_spectrum(self, threshold=0.0):
+    def plot_spectrum(self, threshold=0.0, zoom=1):
         print("Plotting spectrum...")
         frequencies, powers = self.read_spectral_components_from_csv(
             'results/spectrum.csv')
@@ -290,7 +290,7 @@ class Launch:
 
         time_axis = time_steps/len(time_steps)*tf
 
-        fig, ax = plt.subplots(figsize=(3.2, 2.6))
+        fig, ax = plt.subplots(figsize=(3, 2.4))
         norm = Normalize(0.0, 1.0)
         cmap = get_cmap('coolwarm')
         adj_cmap = adjust_luminosity_contrast(cmap, 0.6, 2.5)
@@ -304,9 +304,9 @@ class Launch:
             lc.set_linewidth(1.5)
             ax.add_collection(lc)
         # ax.autoscale()
-        ax.set_xlim(time_axis.min(), time_axis.max())
+        ax.set_xlim(time_axis.min(), time_axis.max()/zoom)
         cb = plt.colorbar(lc, ax=ax)
-        cb.set_label(r"$\tilde{P}_i'/P_0$")
+        cb.set_label(r"$P_i'/P_0$")
         green_threshold = 0.5
         freq_with_power_above_half = np.nanmin(
             frequencies[powers >= green_threshold])

@@ -89,9 +89,9 @@ def execute_code(file_path):
     try:
       dir = '/home/lorenzi/sw/xop2.3/'
       names = ["DE", "M1", "M2", "M3"]
-      labels = ["DE", "M1", "M2", "M3"]
-      ls = ["-", "--", "-.", ":"]
-      colors = ["b", "g", "r", "orange"]
+      labels = [r"$\mathrm{M}_{\mathrm{DE}}$", r"$\mathrm{M}_{\mathrm{1}}$", r"$\mathrm{M}_{\mathrm{2}}$", r"$\mathrm{M}_{\mathrm{3}}$"]
+      ls = ["-", ":", "--", "-."]
+      colors = ["gray", "g", "b", "m"]
       config = toml.load('input/si_units.toml')
       P = config['P']
       m = config['m']
@@ -116,19 +116,28 @@ def execute_code(file_path):
           cnt += 1
           # print([p[0] for p in points])
           xaxis = np.array([p[0] for p in points])
-          if i>0:
+          if i>0: # exclude the DE
             plt.plot(xaxis, 
                     [p[1] for p in points],
                     label=labels[i],
                     ls=ls[i], 
                     lw =1.1, 
                     color=colors[i])
+          else:
+            yvals = [p[1] for p in points]
+            plt.plot(xaxis, 
+                    np.where(xaxis<1.12, yvals , np.nan),
+                    label=labels[i],
+                    ls=ls[i], 
+                    lw =1.1, 
+                    color=colors[i])
+            
       max_alpha1 = np.max([i[1] for i in points])
       flat_coefficients = [(i[0], 1.0) for i in points]
       save_coefficients_to_csv(flat_coefficients, "input/reflectivity/freq/FLAT_f.csv")
 
 
-      plt.axvspan(xmin=1.033, xmax=0.542, ymin=0,
+      plt.axvspan(xmin=1.06, xmax=0.542, ymin=0,
                     ymax=1, color='orange', alpha=0.2)
       plt.xlabel(r"$\omega/\omega_0$")
       plt.xlim(0.1, 1.4)

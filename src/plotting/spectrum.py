@@ -18,7 +18,7 @@ def plot_heatmap_from_csv(csv_file_path, output_image_path):
     
     plt.figure(figsize=(3, 2.5))
     contour = plt.contourf(P1, P2, results_matrix, cmap='viridis', levels=5, alpha = 1.0)
-    cbar = plt.colorbar(contour, label=r'$\tilde{P}$ fraction')
+    cbar = plt.colorbar(contour, label=r'$P$ fraction')
     plt.xlabel(r'$\alpha$')
     plt.ylabel(r'$q_0$')
     num_xticks = 5  # Number of xticks you want

@@ -64,6 +64,7 @@ if "eta" in todo:
                   l.eta = eta
                   l.mode = mode[0]
                   l.multilayer = mode[1]
+                  print(f"\n tf={l.get_tf():.3e}, ht = 1e-06")
                   sys.stdout = open(os.devnull, 'w')
                   l.write_config('input/config.toml')
                   results_matrix[i, j] = l.run()
@@ -91,12 +92,11 @@ if "eta" in todo:
   num_xticks = 5
   plt.legend(labelspacing=0.1)
   plt.tight_layout()
-  plt.savefig("media/delta_v_p.pdf")
+  plt.savefig("media/v_eta.pdf")
   print("Done eta.")
 
 ## POWER section =====================
 if "pow" in todo:
-  override = 1
   power_range = np.linspace(0, 100, 30, dtype=np.float64) * 1e9
   l = simulation.Launch()
   l.eta = 0.0
@@ -111,6 +111,7 @@ if "pow" in todo:
                   l.p_0 = power
                   l.mode = mode[0]
                   l.multilayer = mode[1]
+                  print(f"\n tf={l.get_tf():.3e}, ht = 1e-06")
                   sys.stdout = open(os.devnull, 'w')
                   l.write_config('input/config.toml')
                   results_matrix[i, j] = l.run()
@@ -141,5 +142,5 @@ if "pow" in todo:
   plt.gca().ticklabel_format(style='sci', axis='x', scilimits=(3, 0))
   plt.legend(labelspacing=0.1)
   plt.tight_layout()
-  plt.savefig("media/delta_v_pow.pdf")
+  plt.savefig("media/v_pow.pdf")
   print("Done power.")
