@@ -14,7 +14,7 @@ l.mode = "delay"
 l.p_0 = 50e9
 l.t_f = 500
 # 3e6 for short, 3e9 for long
-l.q_0 = 3e6
+l.q_0 = 3e9
 l.d_sail = 100
 l.show()
 l.compile()

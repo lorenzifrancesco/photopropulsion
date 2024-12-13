@@ -11,7 +11,7 @@ from matplotlib.cm import get_cmap
 from matplotlib.collections import LineCollection
 from matplotlib.colors import Normalize, ListedColormap
 from scipy.constants import lambda2nu, Boltzmann, c, h
-
+from matplotlib.colors import LinearSegmentedColormap
 
 def adjust_luminosity_contrast(cmap, lum_factor, contrast_factor):
     colors = cmap(np.arange(cmap.N))
@@ -292,7 +292,17 @@ class Launch:
 
         fig, ax = plt.subplots(figsize=(3, 2.4))
         norm = Normalize(0.0, 1.0)
-        cmap = get_cmap('coolwarm')
+        # cmap = get_cmap('coolwarm')
+        
+        colors = [
+            (0.7, 0.4, 0.4),    # Dark reddish-brown (RGB)
+            # (1.0, 0.75, 0.8)  # Pink (RGB)
+            (1.0, 0.2, 0.5),  # Bright pink (RGB)
+        ]
+
+        # Create a custom colormap
+        cmap = LinearSegmentedColormap.from_list("PinkToBrownContinuous", colors)
+
         adj_cmap = adjust_luminosity_contrast(cmap, 0.6, 2.5)
         print(frequencies.shape)
         for j in range(tot_frequencies):
