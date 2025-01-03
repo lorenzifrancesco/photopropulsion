@@ -14,7 +14,7 @@ l.mode = "delay"
 l.p_0 = 50e9
 l.t_f = 500
 # 3e6 for short, 3e9 for long
-l.q_0 = 3e9
+l.q_0 = 3e6
 l.d_sail = 100
 l.show()
 l.compile()
@@ -49,7 +49,7 @@ color_list = ["c", "r", "g", "b", "y", "b"]
 
 color_list = ['b', 'g', 'r', 'orange']
 ls_list = [ '--', ':', '-.', '-']
-labels = [ r"$\alpha=0.3$", r"$\alpha=0.6$", r"$\alpha=0.9$", r"$\alpha=0$"]
+labels = [ r"$r=0.3$", r"$r=0.6$", r"$r=0.9$", r"$r=0$"]
 # color_list = color_list[::-1]
 # ls_list = ls_list[::-1]
 # labels = labels[::-1]
@@ -62,10 +62,10 @@ for i in range(max):
     lw = 1
   else:
     lw = lw0
-  plt.semilogy(time, P_list[i], linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
-  plt.semilogy(time, 1/(1-(configurations[i]*l.alpha2)) * np.ones_like(P_list[i]), linestyle="-", color=color_list[:][i], linewidth=lw-0.5)
+  plt.semilogy(time, P_list[i]/(1/(1-(configurations[i]*l.alpha2)) * np.ones_like(P_list[i])), linestyle=ls_list[i], color=color_list[i], label=labels[i], linewidth=lw)
+  # plt.semilogy(time, 1/(1-(configurations[i]*l.alpha2)) * np.ones_like(P_list[i]), linestyle="-", color=color_list[:][i], linewidth=lw-0.5)
 plt.xlabel(r'$t/t_{\mathrm{rel}}$')
-plt.ylabel(r'$P/P_0$')
+plt.ylabel(r'$P/P_{\mathrm{inst}}$')
 plt.gca().ticklabel_format(style='sci', axis='x', scilimits=(3, 0))
 plt.grid(grid)
 plt.legend(labelspacing=0.1)

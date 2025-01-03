@@ -12,6 +12,8 @@ from matplotlib.collections import LineCollection
 from matplotlib.colors import Normalize, ListedColormap
 from scipy.constants import lambda2nu, Boltzmann, c, h
 from matplotlib.colors import LinearSegmentedColormap
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.colorbar import Colorbar
 
 def adjust_luminosity_contrast(cmap, lum_factor, contrast_factor):
     colors = cmap(np.arange(cmap.N))
@@ -241,9 +243,10 @@ class Launch:
     def read_speed_from_csv(self, file_path):
         df = pd.read_csv(file_path)
         times = np.array(df['Time'])
+        positions = np.array(df['q'])
         speeds = np.array(df['Q'])
         total_powers = np.array(df['P'])
-        return times, speeds, total_powers
+        return times, positions, speeds, total_powers
 
     def read_spectral_components_from_csv(self, file_path):
         frequencies = []
@@ -262,77 +265,92 @@ class Launch:
         return np.array(frequencies), np.array(powers)
 
     def plot_spectrum(self, threshold=0.0, zoom=1):
-        print("Plotting spectrum...")
-        frequencies, powers = self.read_spectral_components_from_csv(
-            'results/spectrum.csv')
-        times, speeds, total_powers = self.read_speed_from_csv(
-            'results/delay.csv')
-        skip = 20
-        speeds = speeds[2::skip]
-        times = times[2::skip]
-        frequencies = frequencies[::skip, :]
-        powers = powers[::skip, :]
-        total_powers = total_powers[2::skip]
-        sqrt_d = np.sqrt((1-speeds)/(1+speeds))
-        tot_frequencies = frequencies.shape[1]
-        for j in range(tot_frequencies):
-            frequencies[:, j] = frequencies[:, j]*sqrt_d
-            powers[:, j] = powers[:, j]*sqrt_d
-            frequencies[:, j] = np.where(
-                powers[:, j] < threshold, np.nan, frequencies[:, j])
-        frequencies = np.where(frequencies == 0, np.nan, frequencies)
-        frequencies = np.where(powers <= threshold, np.nan, frequencies)
-        time_steps = np.arange(powers.shape[0])
 
-        config_path = 'input/config.toml'
-        config = toml.load(config_path)
-        tf = config['tf']
+      print("Plotting spectrum...")
+      frequencies, powers = self.read_spectral_components_from_csv('results/spectrum.csv')
+      times, positions, speeds, total_powers = self.read_speed_from_csv('results/delay.csv')
+      skip = 20
+      speeds = speeds[2::skip]
+      positions = positions[2::skip]
+      times = times[2::skip]
+      frequencies = frequencies[::skip, :]
+      powers = powers[::skip, :]
+      total_powers = total_powers[2::skip]
+      sqrt_d = np.sqrt((1-speeds)/(1+speeds))
+      tot_frequencies = frequencies.shape[1]
 
-        time_axis = time_steps/len(time_steps)*tf
+      for j in range(tot_frequencies):
+          frequencies[:, j] *= sqrt_d
+          powers[:, j] *= sqrt_d
+          frequencies[:, j] = np.where(powers[:, j] < threshold, np.nan, frequencies[:, j])
 
-        fig, ax = plt.subplots(figsize=(3, 2.4))
-        norm = Normalize(0.0, 1.0)
-        # cmap = get_cmap('coolwarm')
-        
-        colors = [
-            (0.7, 0.4, 0.4),    # Dark reddish-brown (RGB)
-            # (1.0, 0.75, 0.8)  # Pink (RGB)
-            (1.0, 0.2, 0.5),  # Bright pink (RGB)
-        ]
+      frequencies = np.where(frequencies == 0, np.nan, frequencies)
+      frequencies = np.where(powers <= threshold, np.nan, frequencies)
 
-        # Create a custom colormap
-        cmap = LinearSegmentedColormap.from_list("PinkToBrownContinuous", colors)
+      time_steps = np.arange(powers.shape[0])
 
-        adj_cmap = adjust_luminosity_contrast(cmap, 0.6, 2.5)
-        print(frequencies.shape)
-        for j in range(tot_frequencies):
-            points = np.array([time_axis, frequencies[:, j]]
-                              ).T.reshape(-1, 1, 2)
-            segments = np.concatenate([points[:-1], points[1:]], axis=1)
-            lc = LineCollection(segments, cmap=adj_cmap, norm=norm)
-            lc.set_array(powers[:, j])
-            lc.set_linewidth(1.5)
-            ax.add_collection(lc)
-        # ax.autoscale()
-        ax.set_xlim(time_axis.min(), time_axis.max()/zoom)
-        cb = plt.colorbar(lc, ax=ax)
-        cb.set_label(r"$P_i'/P_0$")
-        green_threshold = 0.5
-        freq_with_power_above_half = np.nanmin(
-            frequencies[powers >= green_threshold])
-        # freq_with_power_above_half = np.min(frequencies[-1, powers[-1, :] >= threshold])
-        print(freq_with_power_above_half)
-        plt.axhspan(freq_with_power_above_half, 1.0, xmin=0,
-                    xmax=1, color='green', alpha=0.2)
-        # plt.axhline(np.nanmin(frequencies))
-        # for j in range(tot_frequencies):
-        #     print(np.nanmin(frequencies[:, j]))
-        plt.gca().ticklabel_format(style='sci', axis='both', scilimits=(3, 0))
-        plt.xlabel(r'$t/t_\mathrm{rel}$')
-        plt.ylim((0.0, 1.0))
-        plt.ylabel(r'$\omega_i^\prime/\omega_0$')
-        # plt.legend(loc='best')
-        # plt.grid(True)
-        plt.tight_layout()
-        plt.savefig("media/spectrum_lines.pdf")
-        print("Done.")
+      config_path = 'input/config.toml'
+      config = toml.load(config_path)
+      tf = config['tf']
+      time_axis = time_steps / len(time_steps) * tf
+
+      fig, axs = plt.subplots(3, 2, figsize=(4, 6),  
+                              gridspec_kw={'height_ratios': [1, 1, 3], 
+                                           'width_ratios': [40, 1], })
+
+      # Plot position
+      axs[0, 0].plot(time_axis, positions, color='blue')
+      axs[0, 0].set_ylabel(r"$q(t)/\ell_{\mathrm{rel}}$")
+      axs[0, 0].set_xticklabels([])  # Blank x-axis
+      # axs[0].grid(True)
+
+      # Plot velocity
+      axs[1, 0].plot(time_axis, speeds, color='green')
+      axs[1, 0].set_ylabel(r"$\dot{q}(t)/c$")
+      axs[1, 0].set_xticklabels([])  # Blank x-axis
+      # axs[1].grid(True)ax1.set_xticks([])  # Blank x-axis
+
+      # Spectrum plot
+      ax_heat = axs[2, 0]
+      norm = Normalize(0.0, 1.0)
+      colors = [
+          (0.5, 0.1, 0.3),  # Dark reddish-brown
+          (0.95, 0.0, 0.9),  # Bright pink
+      ]
+      cmap = LinearSegmentedColormap.from_list("PinkToBrownContinuous", colors)
+      adj_cmap = adjust_luminosity_contrast(cmap, 0.6, 2.5)
+
+      for j in range(tot_frequencies):
+          points = np.array([time_axis, frequencies[:, j]]).T.reshape(-1, 1, 2)
+          segments = np.concatenate([points[:-1], points[1:]], axis=1)
+          lc = LineCollection(segments, cmap="YlOrRd", norm=norm)
+          lc.set_array(powers[:, j])
+          lc.set_linewidth(1.5)
+          lc.set_alpha(1.0)
+          ax_heat.add_collection(lc)
+
+      ax_heat.set_xlim(time_axis.min(), time_axis.max() / zoom)
+      green_threshold = 0.5
+      freq_with_power_above_half = np.nanmin(frequencies[powers >= green_threshold])
+      ax_heat.axhspan(freq_with_power_above_half, 1.0, xmin=0, xmax=1, color='green', alpha=0.15)
+      ax_heat.ticklabel_format(style='sci', axis='both', scilimits=(3, 0))
+      ax_heat.set_xlabel(r'$t/t_\mathrm{rel}$')
+      ax_heat.set_ylim((0.0, 1.0))
+      ax_heat.set_ylabel(r'$\omega_i^\prime/\omega_0$')
+
+      void_ax = axs[0, 1]
+      void_ax.axis('off')
+      void_ax = axs[1, 1]
+      void_ax.axis('off')
+      
+      cbar_ax = axs[2, 1]
+      cbar_ax.set_xlim([0.0, 1.0])
+      # cbar_ax.axis('off')
+      # norm = plt.Normalize(vmin=np.min(powers), vmax=np.max(powers))
+      # sm = plt.cm.C(cmap="viridis")
+      cbar = Colorbar(cbar_ax, cmap="YlOrRd", orientation='vertical')
+      cbar.set_label(r"$P_i'/P_0$")
+      
+      plt.tight_layout()
+      plt.savefig("media/spectrum_with_position_velocity.pdf")
+      print("Done.")
