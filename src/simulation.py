@@ -294,9 +294,16 @@ class Launch:
       tf = config['tf']
       time_axis = time_steps / len(time_steps) * tf
 
-      fig, axs = plt.subplots(3, 2, figsize=(4, 6),  
-                              gridspec_kw={'height_ratios': [1, 1, 3], 
-                                           'width_ratios': [40, 1], })
+      fig, axs = plt.subplots(3, 2, figsize=(4, 5),  
+                              gridspec_kw={'height_ratios': [1, 1, 4], 
+                                           'width_ratios': [40, 1], 
+                                           'hspace':0.1, 
+                                           'wspace':0.05, 
+                                           'left': 0.16,    # Left margin
+                                           'right': 0.85,   # Right margin 
+                                           'top': 0.99,     # Top margin
+                                           'bottom':0.1
+                                           },)
 
       # Plot position
       axs[0, 0].plot(time_axis, positions, color='blue')
