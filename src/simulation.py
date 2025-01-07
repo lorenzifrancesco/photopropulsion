@@ -293,28 +293,35 @@ class Launch:
       config = toml.load(config_path)
       tf = config['tf']
       time_axis = time_steps / len(time_steps) * tf
+      max_time = time_axis[-1]
 
-      fig, axs = plt.subplots(3, 2, figsize=(4, 5),  
+      fig, axs = plt.subplots(3, 2, figsize=(3.6, 4.4),  
                               gridspec_kw={'height_ratios': [1, 1, 4], 
                                            'width_ratios': [40, 1], 
-                                           'hspace':0.1, 
+                                           'hspace':0.12, 
                                            'wspace':0.05, 
-                                           'left': 0.16,    # Left margin
+                                           'left': 0.17,    # Left margin
                                            'right': 0.85,   # Right margin 
-                                           'top': 0.99,     # Top margin
+                                           'top': 0.95,     # Top margin
                                            'bottom':0.1
-                                           },)
+                                           },
+                              sharex=False)
 
       # Plot position
       axs[0, 0].plot(time_axis, positions, color='blue')
       axs[0, 0].set_ylabel(r"$q(t)/\ell_{\mathrm{rel}}$")
       axs[0, 0].set_xticklabels([])  # Blank x-axis
+      axs[0, 0].set_ylim((0.0, 0.0052))
+      axs[0, 0].set_xlim((0.0, max_time))
+      axs[0, 0].ticklabel_format(style='sci', axis='y', scilimits=(3, 0))
       # axs[0].grid(True)
 
       # Plot velocity
       axs[1, 0].plot(time_axis, speeds, color='green')
       axs[1, 0].set_ylabel(r"$\dot{q}(t)/c$")
       axs[1, 0].set_xticklabels([])  # Blank x-axis
+      axs[1, 0].set_ylim((0.0, 0.25))
+      axs[1, 0].set_xlim((0.0, max_time))
       # axs[1].grid(True)ax1.set_xticks([])  # Blank x-axis
 
       # Spectrum plot
@@ -343,6 +350,7 @@ class Launch:
       ax_heat.ticklabel_format(style='sci', axis='both', scilimits=(3, 0))
       ax_heat.set_xlabel(r'$t/t_\mathrm{rel}$')
       ax_heat.set_ylim((0.0, 1.0))
+      ax_heat.set_xlim((0.0, max_time))
       ax_heat.set_ylabel(r'$\omega_i^\prime/\omega_0$')
 
       void_ax = axs[0, 1]
@@ -359,5 +367,5 @@ class Launch:
       cbar.set_label(r"$P_i'/P_0$")
       
       plt.tight_layout()
-      plt.savefig("media/spectrum_with_position_velocity.pdf")
+      plt.savefig("media/spectrum.pdf")
       print("Done.")

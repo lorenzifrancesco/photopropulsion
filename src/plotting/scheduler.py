@@ -144,7 +144,7 @@ xtick_labels = [fr"${pos:.2f}$" for pos in xtick_positions]
 plt.xticks(xtick_positions, xtick_labels)
 
 plt.tight_layout()
-plt.savefig("media/P_ratio_compare.pdf")
+plt.savefig("media/P_ratio.pdf")
 
 plt.figure(figsize=(3, 2.5))
 for i in range(len(p1_range)):
