@@ -95,7 +95,7 @@ class Launch:
         print("Compiling...")
         result = subprocess.run(rust_compile, shell=True,
                                 capture_output=True, text=True)
-        print("Done.")
+        # print("Done.")
 
     def write_config(self, file):
         print("Wrinting config...")
@@ -117,7 +117,7 @@ class Launch:
         }
         with open(file, "w") as config_file:
             toml.dump(config, config_file)
-        print("Done.")
+        # print("Done.")
 
     def run(self, realtime=False):
         print("Running...")
@@ -144,7 +144,7 @@ class Launch:
                 "panicked", "\033[91mpanicked\033[0m")
         print(colored_text)
         print("_" * 30)
-        print("Done.")
+        # print("Done.")
         return result_float
 
     def show(self):
@@ -200,6 +200,7 @@ class Launch:
         q = df['q']
         Q = df['Q']
         P = df['P']
+        T = df['T']
         file_type = '.pdf'
         grid = False
         lw = 0.5
@@ -215,7 +216,8 @@ class Launch:
             plt.axhline(l_d, ls="--", color="r", lw=1)
         # plt.legend()
         plt.tight_layout()
-        plt.savefig('media/q'+file_type)  # Save plot as PDF for LaTeX
+        plt.savefig('media/q'+file_type)
+        print("Saved plot to: ", 'media/q'+file_type)
 
         # Plotting Q
         plt.figure(figsize=(3, 2.5))
@@ -226,7 +228,8 @@ class Launch:
         plt.axhline(0.2, ls="--", color="r", lw=1)
         # plt.legend()
         plt.tight_layout()
-        plt.savefig('media/qdot'+file_type)  # Save plot as PDF for LaTeX
+        plt.savefig('media/qdot'+file_type)
+        print("Saved plot to: ", 'media/qdot'+file_type)
 
         # Plotting P
         # P = np.where(P == 1.0, np.nan,  P)
@@ -237,8 +240,23 @@ class Launch:
         plt.grid(grid)
         # plt.legend()
         plt.tight_layout()
-        plt.savefig('media/P'+file_type)  # Save plot as PDF for LaTeX
-        print("Done.")
+        name = "media/P"+file_type
+        plt.savefig(name)  # Save plot as PDF for LaTeX
+        print("Saved plot to: ", name)
+
+        # Plotting T
+        plt.figure(figsize=(3, 2.5))
+        plt.plot(time, T, linestyle='-', color='orange', label=r'$T$', linewidth=lw)
+        plt.xlabel(r'$t/t_{\mathrm{rel}}$')
+        plt.ylabel(r'$T$')
+        plt.grid(grid)
+        plt.axhline(1000, ls="--", color="r", lw=1)
+        plt.axhline(2000, ls="--", color="r", lw=1)
+        # plt.legend()
+        plt.tight_layout()
+        name = "media/T"+file_type
+        plt.savefig(name)  # Save plot as PDF for LaTeX
+        print("Saved plot to: ", name)
 
     def read_speed_from_csv(self, file_path):
         df = pd.read_csv(file_path)
@@ -368,4 +386,4 @@ class Launch:
       
       plt.tight_layout()
       plt.savefig("media/spectrum.pdf")
-      print("Done.")
+      print("Saved to media/spectrum.pdf")

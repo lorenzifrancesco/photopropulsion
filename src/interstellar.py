@@ -14,6 +14,18 @@ import simulation
 from simulation import Reflector
 from tqdm import tqdm
 
+plt.rcParams.update({
+    "font.family": "serif",
+    "font.size": 10,
+    "text.usetex": True,
+    "axes.labelsize": 10,
+    "axes.titlesize": 10,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
+    "legend.fontsize": 10,
+    "figure.titlesize": 12,
+})
+
 def plot_interstellar(todo = ["eta", "pow"],
                       override = False,
                       ratio = True,
@@ -68,8 +80,8 @@ def plot_interstellar(todo = ["eta", "pow"],
   else:
     ylims = [0, 0.35]
   n_simulations = len(label_list)
-  file = "auto.csv"
-  output = "results/"
+  # file = "auto.csv"
+  # output = "results/"
 
   ## ETA section ========================
   if "eta" in todo:
@@ -131,8 +143,9 @@ def plot_interstellar(todo = ["eta", "pow"],
          verticalalignment='center', 
          transform=plt.gca().transAxes, 
          fontsize=12)
-    plt.savefig("media/v_eta"+special+".pdf")
-    print("Done eta.")
+    name = "media/v_eta"+special+".pdf"
+    plt.savefig(name)
+    print("Saved to", name)
 
   ## POWER section =====================
   if "pow" in todo:

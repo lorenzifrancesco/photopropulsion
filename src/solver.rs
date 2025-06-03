@@ -1,4 +1,4 @@
-use log::{debug, warn};
+// use log::{debug, warn};
 
 pub const HT: f64 = 0.000001; // Time step
 
@@ -41,6 +41,10 @@ pub fn get_p_past(history: &Vec<(f64, f64, f64, f64)>, t: f64) -> f64 {
     }
 }
 
+/*
+Given a power spectrum history, the full previous dynamics of the sail, and a time t,
+computes the spectral components vector at time t.
+*/
 pub fn get_spectral_components(
     power_spectrum: &Vec<Vec<(f64, f64)>>,
     history: &Vec<(f64, f64, f64, f64)>,
@@ -84,6 +88,32 @@ pub fn get_spectral_components(
         new_power_spectrum.append(&mut vec![(1.0, 1.0)]);
         new_power_spectrum
     }
+}
+
+
+/*
+given the diffraction-corrected power spectrum, the alpha1 and absor1 functions,
+computes the value of effective power thrusting the sail.
+*/
+pub fn get_thrust_and_thermal_power(
+    power_spectrum: &Vec<(f64, f64)>,
+    history: &Vec<(f64, f64, f64, f64)>,
+    t: f64,
+    alpha1: &Box<dyn Fn(f64) -> f64>,
+    absor1: &Box<dyn Fn(f64) -> f64>,
+) -> (f64, f64) {
+    let q_prime_old = interpolate(history, t, 3);
+    let doppler = (1.0 - q_prime_old) / (1.0 + q_prime_old);
+    let sqrt_doppler = doppler.sqrt();
+    let mut thrust = 0.0;
+    let mut thermal = 0.0;
+    for line in power_spectrum {
+        let alpha1_value = alpha1(sqrt_doppler * line.0);
+        let absor1_value = absor1(sqrt_doppler * line.0);
+        thrust += line.1 * (2.0 * alpha1_value + absor1_value);
+        thermal += line.1 * absor1_value;
+    }
+    (thrust/2.0, thermal) // divide by 2 to obtain the "effective reflected-like" power
 }
 
 pub fn get_spectrum_past<'a>(

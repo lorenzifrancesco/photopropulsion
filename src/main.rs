@@ -1,17 +1,21 @@
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
+use log::info;
 use log::Level;
 use simple_logger;
-use log::{warn, debug};
+// use log::{warn, debug};
 use toml;
 use serde::Deserialize;
+use toml::value::DatetimeParseError;
 use std::fs;
 
 pub mod io;
 use crate::io::*;
 
 pub mod solver;
-use crate::solver::*; 
+use crate::solver::*;
+pub mod thermal;
+use crate::thermal::*;
 
 #[derive(Debug, Deserialize)]
 struct Config {
@@ -43,6 +47,8 @@ fn main() {
     let mut q = config.q;
     let mut q_prime = config.q_prime;
     let mut p= config.p;
+    let mut th= 0.0;
+    let mut temperature = 100.0;
     let mut delta = config.delta;
     let mut t = config.t;
     let mut cnt = 0;
@@ -50,17 +56,21 @@ fn main() {
     let multilayer = config.multilayer;
     let alpha1 = config.alpha1;
     let alpha2 = config.alpha2;
+    let diameter = 1.0; // FIXME
     let diffraction_constant = config.diffraction_constant;
     let threshold = 0.0; // empirically determined
+
     let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
-    let mut results: Vec<(f64, f64, f64, f64)> = Vec::new();
+    let mut results: Vec<(f64, f64, f64, f64, f64)> = Vec::new();
     let mut power_spectrum: Vec<Vec<(f64, f64)>> = vec![vec![(1.0, 1.0)]];
     
     let alpha1_fun;
     let alpha2_fun;
+    // let absor1_fun;
     if alpha1 == 0.0 {
       alpha1_fun = linear_interpolator(&("input/reflectivity/freq/".to_string() + & multilayer + "_f.csv")).expect("c");
+      // absor1_fun = linear_interpolator(&("input/reflectivity/freq/".to_string() + & multilayer + "_f.csv")).expect("c");
       if multilayer == "FLAT" {
         alpha2_fun = linear_interpolator(&("input/reflectivity/freq/FLAT_f.csv")).expect("c");
       } else {
@@ -75,7 +85,8 @@ fn main() {
 
     let alphart = alpha1*alpha2;
 
-    let mode = &config.mode;    
+    let mode = &config.mode;
+    println!("Mode: {}", mode);
     let file = &config.file;
     let mut output: PathBuf = PathBuf::from(&config.output);
     let mut diff_factor: f64;
@@ -84,7 +95,7 @@ fn main() {
       p /= 1.0 - alphart;
     }
 
-    results.push((t, q, q_prime, p));
+    results.push((t, q, q_prime, p, temperature));
     while (t < tf) && (q_prime - status > threshold){
         if mode == "delay" {
           if !(t==0.0) {
@@ -98,7 +109,7 @@ fn main() {
                 diffraction_constant,
                 &alpha1_fun, 
                 &alpha2_fun)]);
-              p = 0.0;
+              // p = 0.0;
               for line in power_spectrum[cnt].clone() {
                 let l_d = diffraction_constant * line.0; 
                 if q > l_d {
@@ -106,8 +117,25 @@ fn main() {
                 } else {
                   diff_factor = 1.0;
                 }
-                p += line.1 * diff_factor;
+                // p += line.1 * diff_factor; // TODO: implement this also in the new method
               }
+              let tmp = get_thrust_and_thermal_power(&power_spectrum.last().expect("power_spectrum has no last!"), 
+                &history, 
+                t, 
+                &alpha1_fun, 
+                &alpha1_fun);
+              p = tmp.0;
+              // println!("power from the exact value: {:3.2e}", tmp.0);
+              th = tmp.1;
+              temperature = solve_temperature(th * 50e3,
+                diameter, 
+                &alpha1_fun, 
+                1e12, 
+                3e14, 
+                Some(1000), 
+                Some(10.0), 
+                Some((1.0, 5e9))).expect("Failed to solve temperature");
+              
               cnt += 1;
             } else {
               println!("\np_past is NaN");
@@ -127,9 +155,16 @@ fn main() {
         history.push((t, q, q_prime, p));
         #[cfg(debug_assertions)] 
         {
-          println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}", t, t-delta, q, p, q_prime, q_prime-status);
+          println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}|temperature={:3.2e}", 
+          t, 
+          t-delta, 
+          q, 
+          p, 
+          q_prime, 
+          q_prime-status,
+          temperature);
         }
-        results.push((t, q, q_prime, p));
+        results.push((t, q, q_prime, p, temperature));
     }
     if t < tf {
       println!("Terminated as stationary state.")
@@ -140,7 +175,7 @@ fn main() {
     output.push(&file);
     save_results_to_csv(output.as_path(), &results);
     
-    if mode=="delay" 
+    if mode=="delay"
     {
       output.set_file_name("spectrum.csv");
       // println!("Final power spectrum: {:?}", power_spectrum[cnt-1]);
