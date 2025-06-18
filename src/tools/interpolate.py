@@ -83,12 +83,19 @@ def rescale_points(points, t_rel):
         points[i] = (t_rel * points[i][0], points[i][1])
     return points
 
+# TODO check
+def rescale_wavelengths_to_f0(points, xx):
+    for i in range(len(points)):
+        points[i] = (xx / points[i][0], points[i][1])
+    return points
+
 
 def execute_code(file_path):
     print(f"Executing code for {file_path}...")
     try:
       dir = '/home/lorenzi/sw/xop2.3/'
-      names = ["DE", "M1", "M2", "M3"]
+    #   names = ["DE", "M1", "M2", "M3"]
+      names = ["slab_e1"]
       labels = [r"$\mathrm{M}_{\mathrm{DE}}$", r"$\mathrm{M}_{\mathrm{1}}$", r"$\mathrm{M}_{\mathrm{2}}$", r"$\mathrm{M}_{\mathrm{3}}$"]
       ls = ["-", ":", "--", "-."]
       colors = ["gray", "g", "b", "m"]
@@ -104,14 +111,14 @@ def execute_code(file_path):
           points = load_points(dir, n, mode="txt")
           # print(names[i])
           # print(points)
-          points = rescale_points(points, 1/f_0)
+          points = rescale_points(points, c/(f_0))
           if n == "DE":
             # need to multiply by the mirror to total 
             # surface ratio
             m2s = 0.9
             for j, p in enumerate(points):
               points[j] = (p[0], p[1]*m2s)
-
+          print(points)
           save_coefficients_to_csv(points, "input/reflectivity/freq/" + n + "_f.csv")
           cnt += 1
           # print([p[0] for p in points])
@@ -135,8 +142,6 @@ def execute_code(file_path):
       max_alpha1 = np.max([i[1] for i in points])
       flat_coefficients = [(i[0], 1.0) for i in points]
       save_coefficients_to_csv(flat_coefficients, "input/reflectivity/freq/FLAT_f.csv")
-
-
       plt.axvspan(xmin=1.06, xmax=0.542, ymin=0,
                     ymax=1, color='orange', alpha=0.2)
       plt.xlabel(r"$\omega/\omega_0$")

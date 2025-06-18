@@ -10,6 +10,8 @@ from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 import pandas as pd
 
+# TODO answer to referee Ra - comparison and numerical validation
+
 p1_range = np.linspace(0.001, 0.1, 3)
 p1_range = np.array([0.001, 0.05, 0.1])
 p2_range = np.linspace(0.0, 0.9, 50)

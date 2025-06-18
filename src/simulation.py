@@ -246,12 +246,12 @@ class Launch:
 
         # Plotting T
         plt.figure(figsize=(3, 2.5))
-        plt.plot(time, T, linestyle='-', color='orange', label=r'$T$', linewidth=lw)
+        plt.plot(time, T, linestyle='-', color='red', label=r'$T$', linewidth=lw)
         plt.xlabel(r'$t/t_{\mathrm{rel}}$')
         plt.ylabel(r'$T$')
         plt.grid(grid)
-        plt.axhline(1000, ls="--", color="r", lw=1)
-        plt.axhline(2000, ls="--", color="r", lw=1)
+        # plt.axhline(1000, ls="--", color="r", lw=1)
+        # plt.axhline(2000, ls="--", color="r", lw=1)
         # plt.legend()
         plt.tight_layout()
         name = "media/T"+file_type
