@@ -172,7 +172,7 @@ pub fn step_interpolator(file_path: &str, threshold: f64) -> Result<Box<dyn Fn(f
     let reflectivity_values = read_reflectivity_values_from_csv(file_path)?;
     
     let interpolator = move |x: f64| -> f64 {
-        if x < threshold {
+        if x > threshold {
             reflectivity_values.0  // a0 - value before threshold
         } else {
             reflectivity_values.1  // a1 - value after threshold
