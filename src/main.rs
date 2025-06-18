@@ -47,7 +47,7 @@ fn main() {
     let mut q = config.q;
     let mut q_prime = config.q_prime;
     let mut p= config.p;
-    let mut th= 0.0;
+    let mut th: f64;
     let mut temperature = 100.0;
     let mut delta = config.delta;
     let mut t = config.t;
@@ -56,7 +56,7 @@ fn main() {
     let multilayer = config.multilayer;
     let alpha1 = config.alpha1;
     let alpha2 = config.alpha2;
-    let diameter = 1.0; // FIXME
+    let diameter = 10.0; // FIXME
     let diffraction_constant = config.diffraction_constant;
     let threshold = 0.0; // empirically determined
 
@@ -67,17 +67,18 @@ fn main() {
     
     let alpha1_fun;
     let alpha2_fun;
-    // let absor1_fun;
+    let absor1_fun;
+    // in the Cout assumption, absorp1 is only the absorptivity of the emitter structure.
+    // 
+    absor1_fun = linear_interpolator(&("input/reflectivity/freq/abs2_extended_f.csv")).expect("c");
     if alpha1 == 0.0 {
       alpha1_fun = linear_interpolator(&("input/reflectivity/freq/".to_string() + & multilayer + "_f.csv")).expect("c");
-      // absor1_fun = linear_interpolator(&("input/reflectivity/freq/".to_string() + & multilayer + "_f.csv")).expect("c");
       if multilayer == "FLAT" {
         alpha2_fun = linear_interpolator(&("input/reflectivity/freq/FLAT_f.csv")).expect("c");
       } else {
-        // alpha2_fun = constant_interpolator(alpha2).expect("c");
         alpha2_fun = linear_interpolator(&("input/reflectivity/freq/DE_f.csv")).expect("c");
       }
-      print!("{}", & multilayer);    
+      print!("{}", & multilayer);
     } else {
       alpha1_fun = constant_interpolator(alpha1).expect("c");
       alpha2_fun = constant_interpolator(alpha2).expect("c");
@@ -123,22 +124,27 @@ fn main() {
                 &history, 
                 t, 
                 &alpha1_fun, 
-                &alpha1_fun);
+                &absor1_fun);
               p = tmp.0;
               // println!("power from the exact value: {:3.2e}", tmp.0);
               th = tmp.1;
-              temperature = solve_temperature(th * 50e3,
-                diameter, 
-                &alpha1_fun, 
-                1e12, 
-                3e14, 
-                Some(1000), 
-                Some(10.0), 
-                Some((1.0, 5e9))).expect("Failed to solve temperature");
-              
+              // println!("p={:3.2e}|th={:3.2e}", p, th);
+              if multilayer != "FLAT" {
+                temperature = solve_temperature(th * 50e9,
+                  diameter,
+                  &absor1_fun, 
+                  1e13,
+                  3e14,
+                  Some(1000),
+                  Some(0.001),
+                  Some((1.0, 10000.0))).unwrap_or(-1.0);
+              }
+              else {
+                temperature = 0.0;
+              }
               cnt += 1;
             } else {
-              println!("\np_past is NaN");
+              // println!("\np_past is NaN");
               p = 1.0;
             }
           }

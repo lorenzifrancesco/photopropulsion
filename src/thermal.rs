@@ -6,6 +6,7 @@ use roots::{find_root_brent, Convergency, SimpleConvergency};
 const H_PLANCK: f64 = 6.62607015e-34;  // Planck constant (J⋅s)
 const C_LIGHT: f64 = 299792458.0;       // Speed of light (m/s)
 const K_BOLTZMANN: f64 = 1.380649e-23;  // Boltzmann constant (J/K)
+const F0: f64 = 2.819e14;
 
 /// Compute Planck spectrum: I(ω) = (ℏω³)/(2π²c² * (exp(ℏω/kBT) - 1))
 #[inline]
@@ -52,12 +53,12 @@ where
 
     let mut integral = 0.0;
     let mut prev_freq = freq_min;
-    let mut prev_integrand = emissivity_fn(freq_min) * planck_spectrum(freq_min, temperature);
+    let mut prev_integrand = emissivity_fn(freq_min/F0) * planck_spectrum(freq_min, temperature);
 
     for i in 1..n_points {
         let log_freq = log_min + i as f64 * dlog;
         let freq = log_freq.exp();
-        let integrand = emissivity_fn(freq) * planck_spectrum(freq, temperature);
+        let integrand = emissivity_fn(freq/F0) * planck_spectrum(freq, temperature);
 
         // Trapezoidal rule
         let df = freq - prev_freq;
@@ -187,6 +188,35 @@ where
         t_max,
         tolerance,
     );
-    println!("Temperature found: {:?}", ftr);
+    // println!("Temperature found: {:?}", ftr);
     ftr
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::io::{constant_interpolator, linear_interpolator};
+
+    use super::*;
+    
+    #[test]
+    fn test_solve_temperature() {
+        // Linear emissivity function
+        // let emissivity = |freq: f64| 0.5 + 0.3 * (freq / 1e13);
+        let emissivity = constant_interpolator(0.1).expect("Failed to create constant interpolator");
+        let emissivity = linear_interpolator("input/reflectivity/freq/simple.csv")
+            .expect("Failed to create linear interpolator");
+        let temperature = solve_temperature(
+            1e-6*50e9,          
+            10.0,            
+            &emissivity,
+            1e10,
+            1e15,
+            Some(1000),
+            Some(1e-6),
+            Some((1.0, 10000.0)),
+        );
+        println!("Computed temperature: {:?}", temperature);
+        assert!(temperature.is_some());
+        assert!(temperature.unwrap() > 0.0);
+    }
 }

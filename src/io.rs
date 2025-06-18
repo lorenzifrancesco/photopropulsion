@@ -108,7 +108,6 @@ pub fn linear_interpolator(file_path: &str) -> Result<Box<dyn Fn(f64) -> f64>, B
       if data_points.is_empty() {
           panic!("No data points available for interpolation");
       }
-
       // If x is out of bounds, extrapolate using the first/last segment
       if x <= data_points[0].0 {
           let (x0, y0) = data_points[0];
@@ -141,7 +140,7 @@ pub fn linear_interpolator(file_path: &str) -> Result<Box<dyn Fn(f64) -> f64>, B
           }
       }
 
-      unreachable!() // This should never be reached
+      unreachable!()
   };
 
   Ok(Box::new(interpolator))

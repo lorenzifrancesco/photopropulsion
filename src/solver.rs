@@ -102,16 +102,25 @@ pub fn get_thrust_and_thermal_power(
     alpha1: &Box<dyn Fn(f64) -> f64>,
     absor1: &Box<dyn Fn(f64) -> f64>,
 ) -> (f64, f64) {
-    let q_prime_old = interpolate(history, t, 3);
-    let doppler = (1.0 - q_prime_old) / (1.0 + q_prime_old);
+    let q_prime = interpolate(history, t, 3);
+    let mut doppler = (1.0 - q_prime) / (1.0 + q_prime);
+    if q_prime.is_nan() {
+        doppler = 1.0;
+    }
+    assert!(doppler >= 0.0, "Doppler factor must be non-negative");
     let sqrt_doppler = doppler.sqrt();
     let mut thrust = 0.0;
     let mut thermal = 0.0;
     for line in power_spectrum {
         let alpha1_value = alpha1(sqrt_doppler * line.0);
         let absor1_value = absor1(sqrt_doppler * line.0);
-        thrust += line.1 * (2.0 * alpha1_value + absor1_value);
-        thermal += line.1 * absor1_value;
+         // within Cout and not CWS
+        thrust  += line.1 * (2.0 * alpha1_value + (1.0 - alpha1_value) * absor1_value);
+        thermal += line.1 * (1.0 - alpha1_value) * absor1_value;
+        // println!(
+        //     "line: {:3.2e}, alpha1: {:3.2e}, absor1: {:3.2e}, thrust: {:3.2e}, thermal: {:3.2e}",
+        //     line.0, alpha1_value, absor1_value, thrust, thermal
+        // );
     }
     (thrust/2.0, thermal) // divide by 2 to obtain the "effective reflected-like" power
 }
