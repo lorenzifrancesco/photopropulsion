@@ -56,6 +56,10 @@ class Launch:
             self.d_laser = ff['d_laser']
             self.alpha1 = ff['alpha1']
             self.alpha2 = ff['alpha2']
+            try:
+                self.cutoff_frequency = ff['cutoff_frequency']
+            except KeyError:
+                self.cutoff_frequency = 0.0
             self.rust = ff['rust']
             self.lambda_0 = ff['lambda_0']
             self.mode = ff['mode']
@@ -110,6 +114,7 @@ class Launch:
             "multilayer":    self.multilayer.name,
             "alpha1":        float(self.alpha1),
             "alpha2":        float(self.alpha2),
+            "cutoff_frequency": float(self.cutoff_frequency),
             "diffraction_constant": float(self.get_d_c()),
             "file":          self.file,
             "mode":          self.mode,

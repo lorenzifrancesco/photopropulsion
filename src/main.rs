@@ -30,6 +30,7 @@ struct Config {
     tf: f64,
     alpha1: f64, // set to 0.0 to enable the reading of the spectrum
     alpha2: f64,
+    cutoff_frequency: f64,
     multilayer: String,
     diffraction_constant: f64
 }
@@ -59,7 +60,7 @@ fn main() {
     let diameter = 10.0; // FIXME
     let diffraction_constant = config.diffraction_constant;
     let threshold = 0.0; // empirically determined
-
+    let cutoff_frequency = config.cutoff_frequency;
     let mut status: f64 = -1.0;
     let mut history: Vec<(f64, f64, f64, f64)> = Vec::new();
     let mut results: Vec<(f64, f64, f64, f64, f64)> = Vec::new();
@@ -69,19 +70,26 @@ fn main() {
     let alpha2_fun;
     let absor1_fun;
     // in the Cout assumption, absorp1 is only the absorptivity of the emitter structure.
-    // 
-    absor1_fun = linear_interpolator(&("input/reflectivity/freq/abs2_extended_f.csv")).expect("c");
-    if alpha1 == 0.0 {
-      alpha1_fun = linear_interpolator(&("input/reflectivity/freq/".to_string() + & multilayer + "_f.csv")).expect("c");
-      if multilayer == "FLAT" {
-        alpha2_fun = linear_interpolator(&("input/reflectivity/freq/FLAT_f.csv")).expect("c");
+    //
+    if cutoff_frequency > 0.0 {
+      absor1_fun = step_interpolator(&("input/reflectivity/freq/abs2_step_f.csv"), cutoff_frequency).expect("c");
+      alpha1_fun = step_interpolator(&("input/reflectivity/freq/S_step_f.csv"), cutoff_frequency).expect("c");
+      alpha2_fun = step_interpolator(&("input/reflectivity/freq/DE_step_f.csv"), cutoff_frequency).expect("c");
+    }
+    else {
+      absor1_fun = linear_interpolator(&("input/reflectivity/freq/abs2_extended_f.csv")).expect("c");
+      if alpha1 == 0.0 {
+        alpha1_fun = linear_interpolator(&("input/reflectivity/freq/".to_string() + & multilayer + "_f.csv")).expect("c");
+        if multilayer == "FLAT" {
+          alpha2_fun = linear_interpolator(&("input/reflectivity/freq/FLAT_f.csv")).expect("c");
+        } else {
+          alpha2_fun = linear_interpolator(&("input/reflectivity/freq/DE_f.csv")).expect("c");
+        }
+        print!("{}", & multilayer);
       } else {
-        alpha2_fun = linear_interpolator(&("input/reflectivity/freq/DE_f.csv")).expect("c");
+        alpha1_fun = constant_interpolator(alpha1).expect("c");
+        alpha2_fun = constant_interpolator(alpha2).expect("c");
       }
-      print!("{}", & multilayer);
-    } else {
-      alpha1_fun = constant_interpolator(alpha1).expect("c");
-      alpha2_fun = constant_interpolator(alpha2).expect("c");
     }
 
     let alphart = alpha1*alpha2;

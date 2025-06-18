@@ -101,6 +101,7 @@ fn read_reflectivity_from_csv(file_path: &str) -> Result<Vec<DataPoint>, Box<dyn
 }
 
 
+
 pub fn linear_interpolator(file_path: &str) -> Result<Box<dyn Fn(f64) -> f64>, Box<dyn Error>> {
   let data_points = read_reflectivity_from_csv(file_path)?;
 
@@ -144,6 +145,41 @@ pub fn linear_interpolator(file_path: &str) -> Result<Box<dyn Fn(f64) -> f64>, B
   };
 
   Ok(Box::new(interpolator))
+}
+
+fn read_reflectivity_values_from_csv(file_path: &str) -> Result<(f64, f64), Box<dyn Error>> {
+    use std::fs::File;
+    use std::io::{BufRead, BufReader};
+    
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+    let lines: Vec<String> = reader.lines().collect::<Result<Vec<_>, _>>()?;
+    
+    if lines.len() < 2 {
+        return Err("CSV file must contain at least 2 lines".into());
+    }
+    
+    let a0: f64 = lines[0].trim().parse()
+        .map_err(|_| "Failed to parse first line as f64")?;
+    
+    let a1: f64 = lines[1].trim().parse()
+        .map_err(|_| "Failed to parse second line as f64")?;
+    
+    Ok((a0, a1))
+}
+
+pub fn step_interpolator(file_path: &str, threshold: f64) -> Result<Box<dyn Fn(f64) -> f64>, Box<dyn Error>> {
+    let reflectivity_values = read_reflectivity_values_from_csv(file_path)?;
+    
+    let interpolator = move |x: f64| -> f64 {
+        if x < threshold {
+            reflectivity_values.0  // a0 - value before threshold
+        } else {
+            reflectivity_values.1  // a1 - value after threshold
+        }
+    };
+    
+    Ok(Box::new(interpolator))
 }
 
 pub fn constant_interpolator(value: f64) -> Result<Box<dyn Fn(f64) -> f64>, Box<dyn Error>> {
