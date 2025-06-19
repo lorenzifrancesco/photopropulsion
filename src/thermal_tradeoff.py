@@ -8,20 +8,20 @@ import matplotlib.cm as cm
 cmap = cm.get_cmap('Set1')
 
 compute = 1
-figsize = (2.5, 2.3)
-n_samples = 200
+figsize = (4.2, 1.8)
+n_samples = 2
 cutoff_frequencies = np.linspace(0.1, 0.9, n_samples)  # Normalized to Nd:YAG
 
 output = "results/"
 l = simulation.Launch()
-l.multilayer = simulation.Reflector.M1 # Enable temperature computation 
+l.multilayer = simulation.Reflector.M1 # Enable temperature computation
 l.alpha2 = 1.0
 l.mode = "delay"
 l.p_0 = 50e9
 l.t_f = 500
 l.d_sail = 100
 # 3e6 for short, 3e9 for long. Medium: 1e9
-l.q_0 = 1e6  # Change to 3e9 for long, 1e9 for medium
+l.q_0 = 1e6
 l.compile()
 
 P_list = []
@@ -30,7 +30,7 @@ Q_list = []
 T_list = []
 
 for cutoff_frequency in cutoff_frequencies:
-    l.cutoff_frequency = cutoff_frequency
+    l.cutoff_frequency = cutoff_frequency * 0.0
     l.file = f'cutoff_{cutoff_frequency:.2f}.csv'
     if compute:
         l.write_config('input/config.toml')
@@ -40,37 +40,37 @@ for cutoff_frequency in cutoff_frequencies:
     q_list.append(dd['q'])
     Q_list.append(dd['Q'])
     T_list.append(dd['T'])
-
+    print(f"cut: {cutoff_frequency:>10} | max Q: {np.max(dd['Q']):>10}, max T: {np.max(dd['T']):>10}")
 
 Q_max = [np.max(Q) for Q in Q_list]
 T_max = [np.max(T) for T in T_list]
 
-print(T_max)
-plt.figure(figsize=figsize)
-plt.plot(cutoff_frequencies, Q_max, 
-    marker='o', linestyle='-', color='blue', label='Max Q')
-plt.ylim(0, 1.1 * np.max(Q_list))
-plt.xlabel(r'$f_C/f_0$')
-# plt.yscale('log')
-plt.ylabel(r'$\dot{q}(t_f)/c$')
-plt.gca().ticklabel_format(style='sci', axis='x', scilimits=(3, 0))
+fig, ax1 = plt.subplots(figsize=figsize)
+color1 = 'tab:blue'
+ax1.plot(cutoff_frequencies, Q_max, marker='o', linestyle='-', color=color1, label='Max Q')
+ax1.set_ylabel(r'$\dot{q}(t_f)/c$', color=color1)
+ax1.set_ylim(0, 1.1 * np.max(Q_list))
+ax1.tick_params(axis='y', labelcolor=color1)
 
-# plt.legend(labelspacing=0.1, handletextpad = 0.2)  # Adjust these values to control spacing
+# Shared x-axis
+ax1.set_xlabel(r'$f_c/f_0$')
+# ax1.ticklabel_format(style='sci', axis='x', scilimits=(3, 0))
+
+# Second axis: T_max
+ax2 = ax1.twinx()
+color2 = 'tab:red'
+ax2.plot(cutoff_frequencies, T_max, marker='o', linestyle='--', color=color2, label='T_max')
+ax2.set_ylabel(r'$T$ [K]', color=color2)
+ax2.tick_params(axis='y', labelcolor=color2)
+
+# Optional: add grid or a combined legend
+# ax1.grid(True)
+# Combine legends from both axes if needed
+# lines, labels = ax1.get_legend_handles_labels()
+# lines2, labels2 = ax2.get_legend_handles_labels()
+# ax1.legend(lines + lines2, labels + labels2, loc='best')
+
 plt.tight_layout()
-name = 'media/tradeoff_Q.pdf'
-plt.savefig(name)
-print(f"Saved plot to {name}")
-
-plt.figure(figsize=figsize)
-plt.plot(cutoff_frequencies, T_max, 
-    marker='o', linestyle='-', color='blue')
-plt.xlabel(r'$f_C/f_0$')
-# plt.yscale('log')
-plt.ylabel(r'$T $ [K]')
-plt.gca().ticklabel_format(style='sci', axis='x', scilimits=(3, 0))
-
-# plt.legend(labelspacing=0.1, handletextpad = 0.2)  # Adjust these values to control spacing
-plt.tight_layout()
-name = 'media/tradeoff_T.pdf'
+name = 'media/tradeoff_Q_T.pdf'
 plt.savefig(name)
 print(f"Saved plot to {name}")
