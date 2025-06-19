@@ -112,6 +112,7 @@ where
     };
     let mut convergency = SimpleConvergency { eps: tolerance, max_iter: 10000 };
     let convergency_trait: &mut dyn Convergency<f64> = &mut convergency;
+    
     match find_root_brent(t_min, t_max, &residual, convergency_trait) {
         Ok(root) => Some(root),
         Err(_) => None,
@@ -202,7 +203,6 @@ mod tests {
     fn test_solve_temperature() {
         // Linear emissivity function
         // let emissivity = |freq: f64| 0.5 + 0.3 * (freq / 1e13);
-        let emissivity = constant_interpolator(0.1).expect("Failed to create constant interpolator");
         let emissivity = linear_interpolator("input/reflectivity/freq/simple.csv")
             .expect("Failed to create linear interpolator");
         let temperature = solve_temperature(

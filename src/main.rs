@@ -1,12 +1,10 @@
 use std::path::{PathBuf};
 
-use log::info;
 use log::Level;
 use simple_logger;
 // use log::{warn, debug};
 use toml;
 use serde::Deserialize;
-use toml::value::DatetimeParseError;
 use std::fs;
 
 pub mod io;
@@ -48,7 +46,7 @@ fn main() {
     let mut q = config.q;
     let mut q_prime = config.q_prime;
     let mut p= config.p;
-    let mut th: f64;
+    let mut th = 0.0;
     let mut temperature = 100.0;
     let mut delta = config.delta;
     let mut t = config.t;
@@ -70,11 +68,10 @@ fn main() {
     let alpha2_fun;
     let absor1_fun;
     // in the Cout assumption, absorp1 is only the absorptivity of the emitter structure.
-    //
     if cutoff_frequency > 0.0 {
-      absor1_fun = step_interpolator(&("input/reflectivity/freq/abs2_step_f.csv"), cutoff_frequency).expect("c");
-      alpha1_fun = step_interpolator(&("input/reflectivity/freq/S_step_f.csv"), cutoff_frequency).expect("c");
-      alpha2_fun = step_interpolator(&("input/reflectivity/freq/DE_step_f.csv"), cutoff_frequency).expect("c");
+      absor1_fun = step_interpolator(&("input/reflectivity/freq/abs2_step_f.csv"), 0.3, 0.1).expect("c");
+      alpha1_fun = step_interpolator(&("input/reflectivity/freq/S_step_f.csv"), cutoff_frequency, 0.1).expect("c");
+      alpha2_fun = step_interpolator(&("input/reflectivity/freq/DE_step_f.csv"), cutoff_frequency, 0.1).expect("c");
     }
     else {
       absor1_fun = linear_interpolator(&("input/reflectivity/freq/abs2_extended_f.csv")).expect("c");
@@ -92,7 +89,6 @@ fn main() {
       }
     }
 
-    let alphart = alpha1*alpha2;
 
     let mode = &config.mode;
     println!("Mode: {}", mode);
@@ -100,6 +96,7 @@ fn main() {
     let mut output: PathBuf = PathBuf::from(&config.output);
     let mut diff_factor: f64;
 
+    let alphart = alpha1*alpha2;
     if mode == "lubin" {
       p /= 1.0 - alphart;
     }
@@ -126,7 +123,6 @@ fn main() {
                 } else {
                   diff_factor = 1.0;
                 }
-                // p += line.1 * diff_factor; // TODO: implement this also in the new method
               }
               let tmp = get_thrust_and_thermal_power(&power_spectrum.last().expect("power_spectrum has no last!"), 
                 &history, 
@@ -141,11 +137,11 @@ fn main() {
                 temperature = solve_temperature(th * 50e9,
                   diameter,
                   &absor1_fun, 
-                  1e13,
+                  1e9,
                   3e14,
-                  Some(1000),
-                  Some(0.001),
-                  Some((1.0, 10000.0))).unwrap_or(-1.0);
+                  Some(100),
+                  Some(1e-5),
+                  Some((0.0, 2000.0))).unwrap_or(-1.0);
               }
               else {
                 temperature = 0.0;
@@ -169,14 +165,15 @@ fn main() {
         history.push((t, q, q_prime, p));
         #[cfg(debug_assertions)] 
         {
-          println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stationary={:3.2e}|temperature={:3.2e}", 
+          println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stat.ty={:3.2e}|temp={:3.2e}|th.pow={:3.2e}", 
           t, 
           t-delta, 
           q, 
           p, 
           q_prime, 
           q_prime-status,
-          temperature);
+          temperature, 
+          th);
         }
         results.push((t, q, q_prime, p, temperature));
     }

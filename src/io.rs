@@ -109,26 +109,12 @@ pub fn linear_interpolator(file_path: &str) -> Result<Box<dyn Fn(f64) -> f64>, B
       if data_points.is_empty() {
           panic!("No data points available for interpolation");
       }
-      // If x is out of bounds, extrapolate using the first/last segment
+      // If x is out of bounds, extrapolate using a constant
       if x <= data_points[0].0 {
-          let (x0, y0) = data_points[0];
-          let (x1, y1) = data_points[1];
-          let result = y0 + (x - x0) * (y1 - y0) / (x1 - x0);
-          if result > 0.0 {
-            return result
-          } else{
-              return 0.0
-          }
+          return data_points[0].1;
       }
       if x >= data_points[data_points.len() - 1].0 {
-          let (x0, y0) = data_points[data_points.len() - 2];
-          let (x1, y1) = data_points[data_points.len() - 1];
-          let result = y0 + (x - x0) * (y1 - y0) / (x1 - x0);
-          if result > 0.0 {
-            return result
-          } else{
-              return 0.0
-          }
+          return data_points[data_points.len() - 1].1;
       }
 
       // Find the interval [x0, x1] where x0 <= x <= x1
@@ -168,14 +154,16 @@ fn read_reflectivity_values_from_csv(file_path: &str) -> Result<(f64, f64), Box<
     Ok((a0, a1))
 }
 
-pub fn step_interpolator(file_path: &str, threshold: f64) -> Result<Box<dyn Fn(f64) -> f64>, Box<dyn Error>> {
+pub fn step_interpolator(file_path: &str, threshold: f64, fading: f64) -> Result<Box<dyn Fn(f64) -> f64>, Box<dyn Error>> {
     let reflectivity_values = read_reflectivity_values_from_csv(file_path)?;
-    
+
     let interpolator = move |x: f64| -> f64 {
-        if x > threshold {
+        if x > (1.0+fading) * threshold {
             reflectivity_values.0  // a0 - value before threshold
+        } else if x < (1.0-fading) * threshold {
+            reflectivity_values.1
         } else {
-            reflectivity_values.1  // a1 - value after threshold
+            (reflectivity_values.0 * ((1.0+fading)*threshold - x) + reflectivity_values.1 * (x-(1.0-fading)*threshold) )/(fading*threshold)  // linear interpolation between a1 and a0
         }
     };
     
