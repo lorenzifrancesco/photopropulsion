@@ -1,6 +1,9 @@
 use std::f64::consts::PI;
+use log::info;
 // Add to Cargo.toml: roots = "0.0.8"
 use roots::{find_root_brent, Convergency, SimpleConvergency};
+
+use crate::io::linear_interpolator;
 
 // Physical constants
 const H_PLANCK: f64 = 6.62607015e-34;  // Planck constant (J⋅s)
@@ -193,7 +196,36 @@ where
     ftr
 }
 
-#[cfg(test)]
+/*
+Compute the new temperature using the forward Euler method.
+*/
+pub fn step_temperature_euler<F>(
+    p_absorbed: f64,
+    emissivity_fn: &F,
+    coefficient: f64,
+    freq_min: f64,
+    freq_max: f64,
+    n_points: usize,
+    old_temperature: f64,
+    dt: f64,
+    heat_capacity: f64,
+) -> Option<f64> 
+    where 
+    F: Fn(f64) -> f64 {
+    let net_in_power = residual_function(
+        old_temperature, 
+        p_absorbed, 
+        emissivity_fn, 
+        coefficient, 
+        freq_min, 
+        freq_max, 
+        n_points);
+    let new_temperature = dt * net_in_power*50e9 / heat_capacity + old_temperature;
+    // info!("New temperature: {new_temperature}", );
+    return Some(new_temperature)
+}
+
+    #[cfg(test)]
 mod tests {
     use crate::io::{constant_interpolator, linear_interpolator};
 
@@ -206,7 +238,7 @@ mod tests {
         let emissivity = linear_interpolator("input/reflectivity/freq/simple.csv")
             .expect("Failed to create linear interpolator");
         let temperature = solve_temperature(
-            1e-6*50e9,          
+            1e-6*50e9,
             10.0,            
             &emissivity,
             1e10,

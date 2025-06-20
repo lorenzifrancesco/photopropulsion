@@ -16,7 +16,7 @@ def continuously_update_screen():
                 # running
                 l.update()
                 l.plot_dynamics()
-                # l.plot_spectrum(threshold=0.001)
+                l.plot_spectrum(threshold=0.001)
             time.sleep(0.1)
 
     except KeyboardInterrupt:

@@ -7,7 +7,7 @@ import simulation
 import matplotlib.cm as cm
 cmap = cm.get_cmap('Set1')
 
-compute = 0
+compute = 1
 plotting = ["p_compare", "qdot_compare"]
 figsize = (2.5, 2.3)
 

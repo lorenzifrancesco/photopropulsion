@@ -48,7 +48,9 @@ fn main() {
     let mut q_prime = config.q_prime;
     let mut p= config.p;
     let mut th = 1e-20;
-    let mut temperature = 100.0;
+    let mut past_temperature = 0.0;
+    let mut temperature = 0.0;
+    let temperature_stepping_decimation = 10000;
     let mut delta = config.delta;
     let mut t = config.t;
     let mut cnt = 0;
@@ -70,9 +72,9 @@ fn main() {
     let absor1_fun;
     // in the Cout assumption, absorp1 is only the absorptivity of the emitter structure.
     if cutoff_frequency > 0.0 {
-      absor1_fun = step_interpolator(&("input/reflectivity/freq/abs2_step_f.csv"), 0.4, 0.19).expect("c");
-      alpha1_fun = step_interpolator(&("input/reflectivity/freq/S_step_f.csv"), 0.5, 0.01).expect("c");
-      alpha2_fun = step_interpolator(&("input/reflectivity/freq/DE_step_f.csv"), cutoff_frequency, 0.0).expect("c");
+      absor1_fun = step_interpolator(&("input/reflectivity/freq/abs2_step_f.csv"), 0.2, 0.2).expect("c");
+      alpha1_fun = step_interpolator(&("input/reflectivity/freq/S_step_f.csv"), 0.5, 0.15).expect("c");
+      alpha2_fun = step_interpolator(&("input/reflectivity/freq/DE_step_f.csv"), cutoff_frequency, 0.1).expect("c");
     }
     else {
       absor1_fun = linear_interpolator(&("input/reflectivity/freq/abs2_extended_f.csv")).expect("c");
@@ -102,7 +104,7 @@ fn main() {
       p /= 1.0 - alphart;
     }
 
-    results.push((t, q, q_prime, p, temperature));
+    results.push((t, q, q_prime, th, temperature));
     while (t < tf) && (q_prime - status > threshold){
         if mode == "delay" {
           if !(t==0.0) {
@@ -134,14 +136,26 @@ fn main() {
               th = tmp.1;
               
               if multilayer != "FLAT" {
-                temperature = solve_temperature(th * 50e9,
-                  diameter,
-                  &absor1_fun, 
-                  1e9,
-                  3e14,
-                  Some(100),
-                  Some(10.0),
-                  Some((0.0, 50000.0))).unwrap_or(-1.0);
+                // temperature = solve_temperature(th * 10e9,
+                //   diameter,
+                //   &absor1_fun, 
+                //   1e9,
+                //   3e14,
+                //   Some(100),
+                //   Some(1.0),
+                //   Some((0.0, 50000.0))).unwrap_or(-1.0);
+                for _i in 0..temperature_stepping_decimation {
+                    temperature = step_temperature_euler(th * 50e9,
+                      &absor1_fun, 
+                      diameter,
+                      1e9,
+                      3e14,
+                      100,
+                      past_temperature,
+                      HT/temperature_stepping_decimation as f64,
+                      1.0).unwrap_or(-1.0);
+                    past_temperature = temperature;
+                  }
               }
               else {
                 temperature = 0.0;
@@ -162,8 +176,8 @@ fn main() {
         t += HT;
         
         // Save to history
-        history.push((t, q, q_prime, p-2.0*th));
-        #[cfg(debug_assertions)] 
+        history.push((t, q, q_prime, p));
+        #[cfg(debug_assertions)]
         {
           println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stat.ty={:3.2e}|temp={:3.2e}|th.pow={:3.2e}", 
           t, 
@@ -175,7 +189,7 @@ fn main() {
           temperature, 
           th);
         }
-        results.push((t, q, q_prime, p, temperature));
+        results.push((t, th, q_prime, p, temperature));
     }
     if t < tf {
       println!("Terminated as stationary state.")
