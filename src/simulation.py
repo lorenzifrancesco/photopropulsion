@@ -30,7 +30,6 @@ class Reflector(Enum):
     M3 = 3
     FLAT = 4
 
-
 class Launch:
     sail_mass: float
     eta: float
@@ -52,7 +51,6 @@ class Launch:
             self.q_0 = ff['q_0']
             self.sigma = ff['sigma']
             self.p_0 = ff['p_0']
-            # self.d_sail = ff['d_sail']
             self.d_laser = ff['d_laser']
             self.alpha1 = ff['alpha1']
             self.alpha2 = ff['alpha2']
@@ -64,7 +62,7 @@ class Launch:
             self.lambda_0 = ff['lambda_0']
             self.mode = ff['mode']
             self.multilayer = Reflector(ff['multilayer'])
-        self.d_sail = np.sqrt(self.sail_mass/self.sigma/np.pi)
+        self.d_sail = 2 * np.sqrt(self.sail_mass/self.sigma/np.pi)
         self.alpha = 1.22
         self.file = 'delay.csv'
         self.output_folder = 'results/'
@@ -116,6 +114,7 @@ class Launch:
             "alpha2":        float(self.alpha2),
             "cutoff_frequency": float(self.cutoff_frequency),
             "diffraction_constant": float(self.get_d_c()),
+            "sail_diameter": float(self.d_sail),
             "file":          self.file,
             "mode":          self.mode,
             "output":        self.output_folder
@@ -197,7 +196,7 @@ class Launch:
         print(f"{'t_f':<{header_width}}{self.t_f/self.get_t_rel():.2e}")
         print("=" * (header_width + value_width))
 
-    def plot_dynamics(self):
+    def plot_dynamics(self, na = ""):
         print("Plotting from: ", self.output_folder + self.file)
         df = pd.read_csv(self.output_folder + self.file)
 
@@ -221,8 +220,8 @@ class Launch:
             plt.axhline(l_d, ls="--", color="r", lw=1)
         # plt.legend()
         plt.tight_layout()
-        plt.savefig('media/q'+file_type)
-        print("Saved plot to: ", 'media/q'+file_type)
+        plt.savefig('media/q'+na+file_type)
+        print("Saved plot to: ", 'media/q'+na+file_type)
 
         # Plotting Q
         plt.figure(figsize=(3, 2.5))
@@ -233,8 +232,8 @@ class Launch:
         plt.axhline(0.2, ls="--", color="r", lw=1)
         # plt.legend()
         plt.tight_layout()
-        plt.savefig('media/qdot'+file_type)
-        print("Saved plot to: ", 'media/qdot'+file_type)
+        plt.savefig('media/qdot'+na+file_type)
+        print("Saved plot to: ", 'media/qdot'+na+file_type)
 
         # Plotting P
         # P = np.where(P == 1.0, np.nan,  P)
@@ -245,7 +244,7 @@ class Launch:
         plt.grid(grid)
         # plt.legend()
         plt.tight_layout()
-        name = "media/P"+file_type
+        name = "media/P"+na+file_type
         plt.savefig(name)  # Save plot as PDF for LaTeX
         print("Saved plot to: ", name)
 
@@ -259,7 +258,7 @@ class Launch:
         # plt.axhline(2000, ls="--", color="r", lw=1)
         # plt.legend()
         plt.tight_layout()
-        name = "media/T"+file_type
+        name = "media/T"+na+file_type
         plt.savefig(name)  # Save plot as PDF for LaTeX
         print("Saved plot to: ", name)
 
@@ -287,7 +286,7 @@ class Launch:
                 row_count += 1
         return np.array(frequencies), np.array(powers)
 
-    def plot_spectrum(self, threshold=0.0, zoom=1):
+    def plot_spectrum(self, threshold=0.0, zoom=1, na=""):
 
       print("Plotting spectrum...")
       frequencies, powers = self.read_spectral_components_from_csv('results/spectrum.csv')
@@ -390,5 +389,5 @@ class Launch:
       cbar.set_label(r"$P_i'/P_0$")
       
       plt.tight_layout()
-      plt.savefig("media/spectrum.pdf")
-      print("Saved to media/spectrum.pdf")
+      plt.savefig("media/spectrum_"+na+".pdf")
+      print("Saved to media/spectrum_"+na+".pdf")

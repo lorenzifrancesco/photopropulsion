@@ -30,7 +30,8 @@ struct Config {
     alpha2: f64,
     cutoff_frequency: f64,
     multilayer: String,
-    diffraction_constant: f64
+    diffraction_constant: f64,
+    sail_diameter: f64,
 }
 
 fn load_config() -> Config {
@@ -46,7 +47,7 @@ fn main() {
     let mut q = config.q;
     let mut q_prime = config.q_prime;
     let mut p= config.p;
-    let mut th = 0.0;
+    let mut th = 1e-20;
     let mut temperature = 100.0;
     let mut delta = config.delta;
     let mut t = config.t;
@@ -55,7 +56,7 @@ fn main() {
     let multilayer = config.multilayer;
     let alpha1 = config.alpha1;
     let alpha2 = config.alpha2;
-    let diameter = 10.0; // FIXME
+    let diameter = config.sail_diameter; // FIXME
     let diffraction_constant = config.diffraction_constant;
     let threshold = 0.0; // empirically determined
     let cutoff_frequency = config.cutoff_frequency;
@@ -69,9 +70,9 @@ fn main() {
     let absor1_fun;
     // in the Cout assumption, absorp1 is only the absorptivity of the emitter structure.
     if cutoff_frequency > 0.0 {
-      absor1_fun = step_interpolator(&("input/reflectivity/freq/abs2_step_f.csv"), 0.3, 0.1).expect("c");
-      alpha1_fun = step_interpolator(&("input/reflectivity/freq/S_step_f.csv"), cutoff_frequency, 0.1).expect("c");
-      alpha2_fun = step_interpolator(&("input/reflectivity/freq/DE_step_f.csv"), cutoff_frequency, 0.1).expect("c");
+      absor1_fun = step_interpolator(&("input/reflectivity/freq/abs2_step_f.csv"), 0.4, 0.19).expect("c");
+      alpha1_fun = step_interpolator(&("input/reflectivity/freq/S_step_f.csv"), 0.5, 0.01).expect("c");
+      alpha2_fun = step_interpolator(&("input/reflectivity/freq/DE_step_f.csv"), cutoff_frequency, 0.0).expect("c");
     }
     else {
       absor1_fun = linear_interpolator(&("input/reflectivity/freq/abs2_extended_f.csv")).expect("c");
@@ -130,9 +131,8 @@ fn main() {
                 &alpha1_fun, 
                 &absor1_fun);
               p = tmp.0;
-              // println!("power from the exact value: {:3.2e}", tmp.0);
               th = tmp.1;
-              // println!("p={:3.2e}|th={:3.2e}", p, th);
+              
               if multilayer != "FLAT" {
                 temperature = solve_temperature(th * 50e9,
                   diameter,
@@ -140,8 +140,8 @@ fn main() {
                   1e9,
                   3e14,
                   Some(100),
-                  Some(1e-5),
-                  Some((0.0, 2000.0))).unwrap_or(-1.0);
+                  Some(10.0),
+                  Some((0.0, 50000.0))).unwrap_or(-1.0);
               }
               else {
                 temperature = 0.0;
@@ -162,7 +162,7 @@ fn main() {
         t += HT;
         
         // Save to history
-        history.push((t, q, q_prime, p));
+        history.push((t, q, q_prime, p-2.0*th));
         #[cfg(debug_assertions)] 
         {
           println!("t={:3.2e}|tau={:3.2e}|q={:3.2e}|p={:3.2e}|Q={:3.2e}|stat.ty={:3.2e}|temp={:3.2e}|th.pow={:3.2e}", 
