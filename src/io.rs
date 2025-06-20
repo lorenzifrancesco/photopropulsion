@@ -159,11 +159,12 @@ pub fn step_interpolator(file_path: &str, threshold: f64, fading: f64) -> Result
 
     let interpolator = move |x: f64| -> f64 {
         if x > (1.0+fading) * threshold {
-            reflectivity_values.0  // a0 - value before threshold
+            reflectivity_values.0 // high frequency, in the reflection band
         } else if x < (1.0-fading) * threshold {
-            reflectivity_values.1
+            reflectivity_values.1 // low frequency, in the thermal emission band
         } else {
-            (reflectivity_values.0 * ((1.0+fading)*threshold - x) + reflectivity_values.1 * (x-(1.0-fading)*threshold) )/(fading*threshold)  // linear interpolation between a1 and a0
+            (reflectivity_values.0 * (x-(1.0-fading)*threshold) + 
+            reflectivity_values.1 * ((1.0+fading)*threshold - x) )/(2.0*fading*threshold)  // linear interpolation between a1 and a0
         }
     };
     
