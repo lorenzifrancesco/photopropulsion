@@ -3,9 +3,6 @@ use std::path::{PathBuf};
 use log::Level;
 use simple_logger;
 // use log::{warn, debug};
-use toml;
-use serde::Deserialize;
-use std::fs;
 
 pub mod io;
 use crate::io::*;
@@ -14,36 +11,15 @@ pub mod solver;
 use crate::solver::*;
 pub mod thermal;
 use crate::thermal::*;
+pub mod types;
+use crate::types::*;
 
-#[derive(Debug, Deserialize)]
-struct Config {
-    q: f64,
-    q_prime: f64,
-    p: f64,
-    delta: f64,
-    t: f64,
-    mode: String,
-    file: String,
-    output: String,
-    tf: f64,
-    alpha1: f64, // set to 0.0 to enable the reading of the spectrum
-    alpha2: f64,
-    cutoff_frequency: f64,
-    multilayer: String,
-    diffraction_constant: f64,
-    sail_diameter: f64,
-}
-
-fn load_config() -> Config {
-let config_content = fs::read_to_string("input/config.toml").expect("Failed to read config file");
-  toml::from_str(&config_content).expect("Failed to parse config file")
-}
 
 fn main() {
     simple_logger::init_with_level(Level::Debug).unwrap();
     
-    let config = load_config();
-
+    let config: Config = types::load_config(); // normalized units for the simulations
+    let params: Params = types::load_params(); // physical units as an input to the thermal section
     let mut q = config.q;
     let mut q_prime = config.q_prime;
     let mut p= config.p;
@@ -136,26 +112,26 @@ fn main() {
               th = tmp.1;
               
               if multilayer != "FLAT" {
-                // temperature = solve_temperature(th * 10e9,
-                //   diameter,
-                //   &absor1_fun, 
-                //   1e9,
-                //   3e14,
-                //   Some(100),
-                //   Some(1.0),
-                //   Some((0.0, 50000.0))).unwrap_or(-1.0);
-                for _i in 0..temperature_stepping_decimation {
-                    temperature = step_temperature_euler(th * 50e9,
-                      &absor1_fun, 
-                      diameter,
-                      1e9,
-                      3e14,
-                      100,
-                      past_temperature,
-                      HT/temperature_stepping_decimation as f64,
-                      1.0).unwrap_or(-1.0);
-                    past_temperature = temperature;
-                  }
+                temperature = solve_temperature(th * params.p_0,
+                  diameter,
+                  &absor1_fun, 
+                  1e9,
+                  3e14,
+                  Some(100),
+                  Some(1.0),
+                  Some((0.0, 50000.0))).unwrap_or(-1.0);
+                // for _i in 0..temperature_stepping_decimation {
+                //     temperature = step_temperature_euler(th * 50e9,
+                //       &absor1_fun, 
+                //       diameter,
+                //       1e9,
+                //       3e14,
+                //       100,
+                //       past_temperature,
+                //       HT/temperature_stepping_decimation as f64,
+                //       1.0).unwrap_or(-1.0);
+                //     past_temperature = temperature;
+                //   }
               }
               else {
                 temperature = 0.0;
