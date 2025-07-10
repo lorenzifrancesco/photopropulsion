@@ -48,7 +48,7 @@ if not os.path.exists("results/terminal_vel.npy") or override:
 
     for (i, p1) in enumerate(p1_range):
         for (j, p2) in enumerate(p2_range):
-            with open("input/config.toml", "w") as config_file:
+            with open("input/_config.toml", "w") as config_file:
                 toml.dump(configurations[i][j], config_file)
 
             result = subprocess.run(

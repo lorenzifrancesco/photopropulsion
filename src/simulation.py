@@ -42,7 +42,7 @@ class Launch:
     alpha2: float
     rust: str
 
-    def __init__(self, filename='input/params.toml'):
+    def __init__(self, filename='input/_params.toml'):
         with open(filename, 'r') as f:
             ff = toml.load(f)
             self.sail_mass = ff['sail_mass']
@@ -311,7 +311,7 @@ class Launch:
 
       time_steps = np.arange(powers.shape[0])
 
-      config_path = 'input/config.toml'
+      config_path = 'input/_config.toml'
       config = toml.load(config_path)
       tf = config['tf']
       time_axis = time_steps / len(time_steps) * tf

@@ -5,12 +5,31 @@ import toml
 import subprocess
 import simulation
 import matplotlib.cm as cm
+from pydantic import BaseModel
+import tomllib  # Use 'import tomli' for Python < 3.11
+
+class ThermalConfig(BaseModel):
+    n_samples    : int
+    cutoff_low   : float 
+    cutoff_high  : float 
+    p_0          : float 
+    q_0          : float
+    d_sail       : float
+    t_f          : float 
+
+# Load TOML
+with open("input/_thermal_tradeoff.toml", "rb") as f:
+    data = tomllib.load(f)
+
+cf = ThermalConfig(**data)
+print(cf)
+
 cmap = cm.get_cmap('Set1')
 
-compute = 1
+compute = True
 figsize = (4.2, 1.8)
-n_samples = 10
-cutoff_frequencies = np.linspace(0.01, 0.99, n_samples)  # Normalized to Nd:YAG
+
+cutoff_frequencies = np.linspace(cf.cutoff_low, cf.cutoff_high, cf.n_samples)  # Normalized to Nd:YAG
 
 output = "results/"
 l = simulation.Launch()
@@ -18,8 +37,8 @@ l.multilayer = simulation.Reflector.M1
 
 l.alpha2 = 1.0
 l.mode = "delay"
-l.p_0 = 10e9
-l.t_f = 500
+l.p_0 = cf.p_0
+l.t_f = cf.t_f
 # 3e6 for short, 3e9 for long. Medium: 1e9
 l.q_0 = 3e6
 l.d_sail = 100
@@ -34,7 +53,7 @@ for cutoff_frequency in cutoff_frequencies:
     l.cutoff_frequency = cutoff_frequency
     l.file = f'cutoff_{cutoff_frequency:.2f}.csv'
     if compute:
-        l.write_config('input/config.toml')
+        l.write_config('input/_config.toml')
         l.run()
         l.plot_dynamics(na = f'_{cutoff_frequency:.2f}')
     # l.plot_spectrum(threshold=0.001, na = f'_{cutoff_frequency:.2f}')

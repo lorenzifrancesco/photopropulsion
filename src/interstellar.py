@@ -97,14 +97,14 @@ def plot_interstellar(todo = ["eta", "pow"],
 
         for (i, eta) in enumerate(eta_range):
             for (j, mode) in enumerate(mode_range):
-                with open("input/config.toml", "w") as config_file:
+                with open("input/_config.toml", "w") as config_file:
                     l.eta = eta
                     l.mode = mode[0]
                     l.multilayer = mode[1]
                     print(f"eta={l.eta:.1e}, mode={str(mode[1]):15}", end="")
                     print(f" | tf={l.get_tf():.3e}, ht = 1e-06")
                     sys.stdout = open(os.devnull, 'w')
-                    l.write_config('input/config.toml')
+                    l.write_config('input/_config.toml')
                     results_matrix[i, j] = l.run()
                     sys.stdout = sys.__stdout__
         print(np.shape(results_matrix))
@@ -159,7 +159,7 @@ def plot_interstellar(todo = ["eta", "pow"],
 
         for (i, power) in enumerate(power_range):
             for (j, mode) in enumerate(mode_range):
-                with open("input/config.toml", "w") as config_file:
+                with open("input/_config.toml", "w") as config_file:
                     l.p_0 = power
                     l.mode = mode[0]
                     l.multilayer = mode[1]
@@ -168,7 +168,7 @@ def plot_interstellar(todo = ["eta", "pow"],
                     print(f"pow={l.p_0:.1e}, mode={str(mode[1]):15}", end="")
                     print(f" | tf={l.get_tf():.3e}, ht = 1e-06")
                     sys.stdout = open(os.devnull, 'w')
-                    l.write_config('input/config.toml')
+                    l.write_config('input/_config.toml')
                     results_matrix[i, j] = l.run()
                     sys.stdout = sys.__stdout__
         np.save("results/v_pow.npy", results_matrix)

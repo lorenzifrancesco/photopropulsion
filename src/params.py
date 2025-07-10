@@ -6,13 +6,13 @@ def continuously_update_screen():
     try:
         last_mtime = 0
         while True:
-            current_mtime = os.path.getmtime('input/params.toml')
+            current_mtime = os.path.getmtime('input/_params.toml')
             if current_mtime != last_mtime:
                 last_mtime = current_mtime
                 os.system('clear')
                 l = simulation.Launch()
                 l.show()
-                l.write_config('input/config.toml')
+                l.write_config('input/_config.toml')
                 # running
                 l.update()
                 l.plot_dynamics()

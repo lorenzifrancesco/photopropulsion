@@ -80,7 +80,7 @@ def plot_interstellar_heatmap(override = False,
                 print(f"eta={l.eta:.1e}, mode={str(mode[1]):15}", end="")
                 print(f" | tf={l.get_tf():.3e}, ht = 1e-06")
                 sys.stdout = open(os.devnull, 'w')
-                l.write_config('input/config.toml')
+                l.write_config('input/_config.toml')
                 results_matrix[k, i, j] = l.run()
                 sys.stdout = sys.__stdout__
       print(np.shape(results_matrix))

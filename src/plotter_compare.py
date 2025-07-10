@@ -44,7 +44,7 @@ for q_0_type in ["short", "long"]:
       if compute:
         print(f">> Running with alpha1 = {alpha2} and mode = {mode}")
         l.alpha2 = alpha2
-        l.write_config('input/config.toml')
+        l.write_config('input/_config.toml')
         l.run()
       dd = pd.read_csv('results/'+l.file)
       df_list.append(dd)
@@ -60,7 +60,7 @@ for q_0_type in ["short", "long"]:
   l.mode = "lubin"
   l.alpha2 = 0.0
   l.file = 'power0.00_lubin.csv'
-  l.write_config('input/config.toml')
+  l.write_config('input/_config.toml')
   if True:
     print(f"Lubin S and mode={l.mode}")
     l.run()
