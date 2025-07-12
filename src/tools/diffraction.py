@@ -27,13 +27,13 @@ def fuu(wsail, wde, lam, lmax):
     def nonsense(l):
         # val = ((4*2*np.pi) / (2**(1/2)*2) * (wde * wsail) / (lam * l))**2
         val = 2 * (phi * wsail)**2 / wbestf(l)**2
-        val = ((wde * wsail) / (lam * l) * 2**(3/2) * np.pi)**2
+        val = ((wde * wsail) / (lam * l) * 2**(1/2) * np.pi * phi)**2
         return np.minimum(val, 1)
     
     def nonsense_vero(l):
         # val = ((4*2*np.pi) / (2**(1/2)*2) * (wde * wsail) / (lam * l))**2
         val = 2 * (phi * wsail)**2 / wbestf(l)**2
-        val = ((wde * wsail) / (lam * l * 4 * np.pi * 1.22))**2
+        val = ((wde * wsail) / (lam * l * 2 * 1.22))**2 # FIXME this was fixed
                
         return np.minimum(val, 1)
 

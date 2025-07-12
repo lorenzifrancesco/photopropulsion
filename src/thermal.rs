@@ -1,9 +1,6 @@
 use std::f64::consts::PI;
-use log::info;
 // Add to Cargo.toml: roots = "0.0.8"
 use roots::{find_root_brent, Convergency, SimpleConvergency};
-
-use crate::io::linear_interpolator;
 
 // Physical constants
 const H_PLANCK: f64 = 6.62607015e-34;  // Planck constant (J⋅s)
@@ -227,7 +224,7 @@ pub fn step_temperature_euler<F>(
 
     #[cfg(test)]
 mod tests {
-    use crate::io::{constant_interpolator, linear_interpolator};
+    use crate::io::{linear_interpolator};
 
     use super::*;
     

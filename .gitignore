@@ -1,6 +1,6 @@
 /target
 /media
-/results
+/results*
 /discuss
 /input
 .vscode

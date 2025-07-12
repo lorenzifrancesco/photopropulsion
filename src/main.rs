@@ -24,9 +24,9 @@ fn main() {
     let mut q_prime = config.q_prime;
     let mut p= config.p;
     let mut th = 1e-20;
-    let mut past_temperature = 0.0;
+    // let mut past_temperature = 0.0;
     let mut temperature = 0.0;
-    let temperature_stepping_decimation = 10000;
+    // let temperature_stepping_decimation = 10000;
     let mut delta = config.delta;
     let mut t = config.t;
     let mut cnt = 0;
@@ -34,7 +34,7 @@ fn main() {
     let multilayer = config.multilayer;
     let alpha1 = config.alpha1;
     let alpha2 = config.alpha2;
-    let diameter = config.sail_diameter; // FIXME
+    let diameter = config.sail_diameter;
     let diffraction_constant = config.diffraction_constant;
     let threshold = 0.0; // empirically determined
     let cutoff_frequency = config.cutoff_frequency;
@@ -48,23 +48,43 @@ fn main() {
     let absor1_fun;
     // in the Cout assumption, absorp1 is only the absorptivity of the emitter structure.
     if cutoff_frequency > 0.0 {
-      absor1_fun = step_interpolator(&("input/reflectivity/freq/abs2_step_f.csv"), 0.2, 0.2).expect("c");
-      alpha1_fun = step_interpolator(&("input/reflectivity/freq/S_step_f.csv"), 0.5, 0.15).expect("c");
-      alpha2_fun = step_interpolator(&("input/reflectivity/freq/DE_step_f.csv"), cutoff_frequency, 0.1).expect("c");
+      absor1_fun = step_interpolator(
+        &("input/reflectivity/freq/abs2_step_f.csv"), 
+        0.2,
+        0.2)
+        .expect("Failed to build interpolator");
+      alpha1_fun = step_interpolator(
+        &("input/reflectivity/freq/S_step_f.csv"), 
+        0.5, 
+        0.15)
+        .expect("Failed to build interpolator");
+      alpha2_fun = step_interpolator(
+        &("input/reflectivity/freq/DE_step_f.csv"), 
+        cutoff_frequency, 
+        0.1)
+        .expect("Failed to build interpolator");
     }
     else {
-      absor1_fun = linear_interpolator(&("input/reflectivity/freq/abs2_extended_f.csv")).expect("c");
+      absor1_fun = linear_interpolator(
+        &("input/reflectivity/freq/abs2_extended_f.csv"))
+        .expect("Failed to build interpolator");
       if alpha1 == 0.0 {
-        alpha1_fun = linear_interpolator(&("input/reflectivity/freq/".to_string() + & multilayer + "_f.csv")).expect("c");
+        alpha1_fun = linear_interpolator(
+          &("input/reflectivity/freq/".to_string() + & multilayer + "_f.csv"))
+          .expect("Failed to build interpolator");
         if multilayer == "FLAT" {
-          alpha2_fun = linear_interpolator(&("input/reflectivity/freq/FLAT_f.csv")).expect("c");
+          alpha2_fun = linear_interpolator(
+            &("input/reflectivity/freq/FLAT_f.csv"))
+            .expect("Failed to build interpolator");
         } else {
-          alpha2_fun = linear_interpolator(&("input/reflectivity/freq/DE_f.csv")).expect("c");
+          alpha2_fun = linear_interpolator(
+            &("input/reflectivity/freq/DE_f.csv"))
+            .expect("Failed to build interpolator");
         }
         print!("{}", & multilayer);
       } else {
-        alpha1_fun = constant_interpolator(alpha1).expect("c");
-        alpha2_fun = constant_interpolator(alpha2).expect("c");
+        alpha1_fun = constant_interpolator(alpha1).expect("Failed to build interpolator");
+        alpha2_fun = constant_interpolator(alpha2).expect("Failed to build interpolator");
       }
     }
 
@@ -73,7 +93,7 @@ fn main() {
     println!("Mode: {}", mode);
     let file = &config.file;
     let mut output: PathBuf = PathBuf::from(&config.output);
-    let mut diff_factor: f64;
+    let mut diff_factor= 0.0;
 
     let alphart = alpha1*alpha2;
     if mode == "lubin" {
@@ -108,7 +128,7 @@ fn main() {
                 t, 
                 &alpha1_fun, 
                 &absor1_fun);
-              p = tmp.0;
+              p = tmp.0 * diff_factor; // FIXME
               th = tmp.1;
               
               if multilayer != "FLAT" {
